@@ -4,8 +4,10 @@
 
 module Main where
 
+import Control.Applicative ((<|>))
 import Data.Aeson qualified as Aeson
 import Data.Aeson.Encode.Pretty qualified as Aeson.Pretty
+import Data.ByteString qualified as ByteString
 import Data.ByteString.Builder qualified as ByteString.Builder
 import Data.ByteString.Lazy qualified as ByteString.Lazy
 import Data.Function ((&))
@@ -25,8 +27,14 @@ main = do
 
 getStops :: IO ()
 getStops = do
+  let stopsFilename = "data/stops.json" :: FilePath
+  let stopsLastModifiedFilename = "data/stops-last-modified.txt" :: FilePath
+
   mbtaApiKey <- Text.pack <$> Environment.getEnv "MBTA_API_KEY"
   httpManager <- Http.newManager Http.Tls.tlsManagerSettings
+
+  maybeLastModified <-
+    (Just <$> ByteString.readFile stopsLastModifiedFilename) <|> pure Nothing
 
   let request :: Http.Request
       request =
@@ -39,7 +47,11 @@ getStops = do
               Http.encodePathSegments ["stops"]
                 & ByteString.Builder.toLazyByteString
                 & ByteString.Lazy.toStrict,
-            Http.requestHeaders = [("X-API-Key", Text.encodeUtf8 mbtaApiKey)]
+            Http.requestHeaders =
+              ("X-API-Key", Text.encodeUtf8 mbtaApiKey)
+                : case maybeLastModified of
+                  Nothing -> []
+                  Just lastModified -> [(Http.hIfModifiedSince, lastModified)]
           }
 
   response <- Http.httpLbs request httpManager
@@ -52,8 +64,14 @@ getStops = do
           Text.putStrLn ("JSON parse failure: " <> Text.pack err)
           exitFailure
         Right value -> do
-          ByteString.Lazy.writeFile "data/stops.json" (Aeson.Pretty.encodePretty value)
-          Text.putStrLn "Wrote data/stops.json"
+          ByteString.Lazy.writeFile stopsFilename (Aeson.Pretty.encodePretty value)
+          Text.putStrLn ("Wrote " <> Text.pack stopsFilename)
+          case lookup Http.hLastModified (Http.responseHeaders response) of
+            Nothing -> pure ()
+            Just lastModified -> do
+              ByteString.writeFile stopsLastModifiedFilename lastModified
+              Text.putStrLn ("Wrote " <> Text.pack stopsLastModifiedFilename)
+    304 -> Text.putStrLn (Text.pack stopsFilename <> " is up-to-date.")
     code -> do
       Text.putStrLn ("Unexpected response code: " <> Text.pack (show code))
       exitFailure
