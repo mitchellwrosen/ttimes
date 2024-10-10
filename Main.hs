@@ -39,9 +39,17 @@ stopsLastModifiedFilename = "data/stops-last-modified.txt"
 stopRoutesFilename :: FilePath
 stopRoutesFilename = "data/stop-routes.json"
 
+routesFilename :: FilePath
+routesFilename = "data/routes.json"
+
+routesLastModifiedFilename :: FilePath
+routesLastModifiedFilename = "data/routes-last-modified.txt"
+
 main :: IO ()
 main = do
-  getRoutesForAllStops
+  getStops
+  -- getRoutesForAllStops
+  pure ()
 
 getStops :: IO ()
 getStops = do
@@ -54,19 +62,26 @@ getStops = do
   let request :: Http.Request
       request =
         Http.defaultRequest
-          { Http.method = Http.methodGet,
-            Http.secure = True,
-            Http.host = Text.encodeUtf8 "api-v3.mbta.com",
-            Http.port = 443,
+          { Http.host = Text.encodeUtf8 "api-v3.mbta.com",
+            Http.method = Http.methodGet,
             Http.path =
               Http.encodePathSegments ["stops"]
+                & ByteString.Builder.toLazyByteString
+                & ByteString.Lazy.toStrict,
+            Http.port = 443,
+            Http.queryString =
+              Http.renderQueryText
+                True
+                [ ("include", Just "connecting_stops")
+                ]
                 & ByteString.Builder.toLazyByteString
                 & ByteString.Lazy.toStrict,
             Http.requestHeaders =
               ("X-API-Key", Text.encodeUtf8 mbtaApiKey)
                 : case maybeLastModified of
                   Nothing -> []
-                  Just lastModified -> [(Http.hIfModifiedSince, lastModified)]
+                  Just lastModified -> [(Http.hIfModifiedSince, lastModified)],
+            Http.secure = True
           }
 
   response <- Http.httpLbs request httpManager
@@ -86,6 +101,53 @@ getStops = do
               ByteString.writeFile stopsLastModifiedFilename lastModified
               Text.putStrLn ("Wrote " <> Text.pack stopsLastModifiedFilename)
     304 -> Text.putStrLn (Text.pack stopsFilename <> " is up-to-date.")
+    code -> do
+      Text.putStrLn ("Unexpected response code: " <> Text.pack (show code))
+      exitFailure
+
+getRoutes :: IO ()
+getRoutes = do
+  mbtaApiKey <- Text.pack <$> Environment.getEnv "MBTA_API_KEY"
+  httpManager <- Http.newManager Http.Tls.tlsManagerSettings
+
+  maybeLastModified <-
+    (Just <$> ByteString.readFile routesLastModifiedFilename) <|> pure Nothing
+
+  let request :: Http.Request
+      request =
+        Http.defaultRequest
+          { Http.host = Text.encodeUtf8 "api-v3.mbta.com",
+            Http.method = Http.methodGet,
+            Http.path =
+              Http.encodePathSegments ["routes"]
+                & ByteString.Builder.toLazyByteString
+                & ByteString.Lazy.toStrict,
+            Http.port = 443,
+            Http.requestHeaders =
+              ("X-API-Key", Text.encodeUtf8 mbtaApiKey)
+                : case maybeLastModified of
+                  Nothing -> []
+                  Just lastModified -> [(Http.hIfModifiedSince, lastModified)],
+            Http.secure = True
+          }
+
+  response <- Http.httpLbs request httpManager
+
+  case Http.statusCode (Http.responseStatus response) of
+    200 -> do
+      case Cretheus.Decode.fromLazyBytes Cretheus.Decode.value (Http.responseBody response) of
+        Left err -> do
+          Text.putStrLn ("JSON parse failure: " <> err)
+          exitFailure
+        Right value -> do
+          ByteString.Lazy.writeFile routesFilename (Aeson.Pretty.encodePretty value)
+          Text.putStrLn ("Wrote " <> Text.pack routesFilename)
+          case lookup Http.hLastModified (Http.responseHeaders response) of
+            Nothing -> pure ()
+            Just lastModified -> do
+              ByteString.writeFile routesLastModifiedFilename lastModified
+              Text.putStrLn ("Wrote " <> Text.pack routesLastModifiedFilename)
+    304 -> Text.putStrLn (Text.pack routesFilename <> " is up-to-date.")
     code -> do
       Text.putStrLn ("Unexpected response code: " <> Text.pack (show code))
       exitFailure
@@ -194,13 +256,13 @@ getRoutesForStop mbtaApiKey httpManager stopId = do
   where
     baseRequest =
       Http.defaultRequest
-        { Http.method = Http.methodGet,
-          Http.secure = True,
-          Http.host = Text.encodeUtf8 "api-v3.mbta.com",
-          Http.port = 443,
+        { Http.host = Text.encodeUtf8 "api-v3.mbta.com",
+          Http.method = Http.methodGet,
           Http.path =
             Http.encodePathSegments ["routes"]
               & ByteString.Builder.toLazyByteString
               & ByteString.Lazy.toStrict,
-          Http.requestHeaders = [("X-API-Key", Text.encodeUtf8 mbtaApiKey)]
+          Http.port = 443,
+          Http.requestHeaders = [("X-API-Key", Text.encodeUtf8 mbtaApiKey)],
+          Http.secure = True
         }
