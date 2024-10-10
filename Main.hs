@@ -11,6 +11,7 @@ import Control.Concurrent (threadDelay)
 import Cretheus.Decode qualified
 import Cretheus.Decode qualified as Cretheus (Decoder)
 import Cretheus.Encode qualified
+import Cretheus.Encode qualified as Cretheus (Encoding)
 import Data.Aeson.Encode.Pretty qualified as Aeson.Pretty
 import Data.Aeson.Key qualified as Aeson.Key
 import Data.ByteString qualified as ByteString
@@ -18,7 +19,10 @@ import Data.ByteString.Builder qualified as ByteString.Builder
 import Data.ByteString.Lazy qualified as ByteString.Lazy
 import Data.Foldable qualified as Foldable
 import Data.Function ((&))
+import Data.Map (Map)
 import Data.Map.Strict qualified as Map
+import Data.Set (Set)
+import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
@@ -39,6 +43,9 @@ stopsLastModifiedFilename = "data/stops-last-modified.txt"
 stopRoutesFilename :: FilePath
 stopRoutesFilename = "data/stop-routes.json"
 
+stopConnectingRoutesFilename :: FilePath
+stopConnectingRoutesFilename = "data/stop-connecting-routes.json"
+
 routesFilename :: FilePath
 routesFilename = "data/routes.json"
 
@@ -48,8 +55,9 @@ routesLastModifiedFilename = "data/routes-last-modified.txt"
 main :: IO ()
 main = do
   -- getStops
-  getRoutes
+  -- getRoutes
   -- getRoutesForAllStops
+  writeConnectingRoutesForAllStops
   pure ()
 
 getStops :: IO ()
@@ -188,15 +196,7 @@ getRoutesForAllStops = do
             Cretheus.Encode.asValue $
               Cretheus.Encode.map
                 Aeson.Key.fromText
-                ( Cretheus.Encode.list
-                    ( \(id, shortName, type_) ->
-                        Cretheus.Encode.object
-                          [ Cretheus.Encode.property "id" (Cretheus.Encode.text id),
-                            Cretheus.Encode.property "short_name" (Cretheus.Encode.text shortName),
-                            Cretheus.Encode.property "type" (Cretheus.Encode.int type_)
-                          ]
-                    )
-                )
+                (Cretheus.Encode.list routeInfoEncoder)
                 routes
 
       ByteString.Lazy.writeFile stopRoutesFilename (Aeson.Pretty.encodePretty value)
@@ -267,3 +267,100 @@ getRoutesForStop mbtaApiKey httpManager stopId = do
           Http.requestHeaders = [("X-API-Key", Text.encodeUtf8 mbtaApiKey)],
           Http.secure = True
         }
+
+writeConnectingRoutesForAllStops :: IO ()
+writeConnectingRoutesForAllStops = do
+  stops0 <- do
+    json <- ByteString.readFile stopsFilename
+    let decoder :: Cretheus.Decoder [(Text, [Text], Maybe Text)]
+        decoder =
+          Cretheus.Decode.object $
+            Cretheus.Decode.property "data" $
+              Cretheus.Decode.list $
+                Cretheus.Decode.object do
+                  id <- Cretheus.Decode.property "id" Cretheus.Decode.text
+                  (connectingStops, parentStation) <-
+                    Cretheus.Decode.property "relationships" $
+                      Cretheus.Decode.object do
+                        connectingStops <-
+                          Cretheus.Decode.property "connecting_stops" $
+                            Cretheus.Decode.object $
+                              Cretheus.Decode.property "data" $
+                                Cretheus.Decode.list $
+                                  Cretheus.Decode.object $
+                                    Cretheus.Decode.property "id" Cretheus.Decode.text
+                        parentStation <-
+                          Cretheus.Decode.property "parent_station" $
+                            Cretheus.Decode.object $
+                              Cretheus.Decode.property "data" $
+                                Cretheus.Decode.nullable $
+                                  Cretheus.Decode.object $
+                                    Cretheus.Decode.property "id" Cretheus.Decode.text
+                        pure (connectingStops, parentStation)
+                  pure (id, connectingStops, parentStation)
+    case Cretheus.Decode.fromBytes decoder json of
+      Left err -> do
+        Text.putStrLn ("Error parsing " <> Text.pack stopsFilename <> ": " <> err)
+        exitFailure
+      Right stops -> pure (Map.fromList (map (\(x, y, z) -> (x, (y, z))) stops))
+
+  routes0 <- do
+    json <- ByteString.readFile stopRoutesFilename
+    let decoder :: Cretheus.Decoder (Map Text (Set (Text, Text, Int)))
+        decoder =
+          Cretheus.Decode.map
+            Aeson.Key.toText
+            ( Set.fromList
+                <$> Cretheus.Decode.list
+                  ( Cretheus.Decode.object do
+                      id <- Cretheus.Decode.property "id" Cretheus.Decode.text
+                      shortName <- Cretheus.Decode.property "short_name" Cretheus.Decode.text
+                      type_ <- Cretheus.Decode.property "type" Cretheus.Decode.int
+                      pure (id, shortName, type_)
+                  )
+            )
+    case Cretheus.Decode.fromBytes decoder json of
+      Left err -> do
+        Text.putStrLn ("Error parsing " <> Text.pack stopRoutesFilename <> ": " <> err)
+        exitFailure
+      Right routes -> pure routes
+
+  let stopToConnectingRoutes :: Map Text (Set (Text, Text, Int))
+      stopToConnectingRoutes =
+        Map.mapWithKey
+          ( \myStopId (connectingStops, maybeParentStation) ->
+              Set.unions
+                [ Set.singleton myStopId,
+                  Set.fromList connectingStops,
+                  case maybeParentStation of
+                    Nothing -> Set.empty
+                    Just parentStation ->
+                      Set.insert
+                        parentStation
+                        ( maybe
+                            Set.empty
+                            (Set.fromList . fst)
+                            (Map.lookup parentStation stops0)
+                        )
+                ]
+                & foldMap \stopId -> Map.findWithDefault Set.empty stopId routes0
+          )
+          stops0
+
+  let value =
+        Cretheus.Encode.asValue $
+          Cretheus.Encode.map
+            Aeson.Key.fromText
+            (Cretheus.Encode.set routeInfoEncoder)
+            stopToConnectingRoutes
+
+  ByteString.Lazy.writeFile stopConnectingRoutesFilename (Aeson.Pretty.encodePretty value)
+  Text.putStrLn ("Wrote " <> Text.pack stopConnectingRoutesFilename)
+
+routeInfoEncoder :: (Text, Text, Int) -> Cretheus.Encoding
+routeInfoEncoder (id, shortName, type_) =
+  Cretheus.Encode.object
+    [ Cretheus.Encode.property "id" (Cretheus.Encode.text id),
+      Cretheus.Encode.property "short_name" (Cretheus.Encode.text shortName),
+      Cretheus.Encode.property "type" (Cretheus.Encode.int type_)
+    ]
