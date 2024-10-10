@@ -47,7 +47,8 @@ routesLastModifiedFilename = "data/routes-last-modified.txt"
 
 main :: IO ()
 main = do
-  getStops
+  -- getStops
+  getRoutes
   -- getRoutesForAllStops
   pure ()
 
