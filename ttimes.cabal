@@ -9,6 +9,8 @@ executable ttimes
     aeson-pretty,
     base,
     bytestring,
+    containers,
+    cretheus,
     http-client,
     http-client-tls,
     http-types,

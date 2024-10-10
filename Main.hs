@@ -1,16 +1,24 @@
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Main where
 
 import Control.Applicative ((<|>))
-import Data.Aeson qualified as Aeson
+import Control.Concurrent (threadDelay)
+import Cretheus.Decode qualified
+import Cretheus.Decode qualified as Cretheus (Decoder)
+import Cretheus.Encode qualified
 import Data.Aeson.Encode.Pretty qualified as Aeson.Pretty
+import Data.Aeson.Key qualified as Aeson.Key
 import Data.ByteString qualified as ByteString
 import Data.ByteString.Builder qualified as ByteString.Builder
 import Data.ByteString.Lazy qualified as ByteString.Lazy
+import Data.Foldable qualified as Foldable
 import Data.Function ((&))
+import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
@@ -20,16 +28,23 @@ import Network.HTTP.Client.TLS qualified as Http.Tls
 import Network.HTTP.Types qualified as Http
 import System.Environment qualified as Environment
 import System.Exit (exitFailure)
+import Prelude hiding (id)
+
+stopsFilename :: FilePath
+stopsFilename = "data/stops.json"
+
+stopsLastModifiedFilename :: FilePath
+stopsLastModifiedFilename = "data/stops-last-modified.txt"
+
+stopRoutesFilename :: FilePath
+stopRoutesFilename = "data/stop-routes.json"
 
 main :: IO ()
 main = do
-  getStops
+  getRoutesForAllStops
 
 getStops :: IO ()
 getStops = do
-  let stopsFilename = "data/stops.json" :: FilePath
-  let stopsLastModifiedFilename = "data/stops-last-modified.txt" :: FilePath
-
   mbtaApiKey <- Text.pack <$> Environment.getEnv "MBTA_API_KEY"
   httpManager <- Http.newManager Http.Tls.tlsManagerSettings
 
@@ -58,10 +73,9 @@ getStops = do
 
   case Http.statusCode (Http.responseStatus response) of
     200 -> do
-      let body = Http.responseBody response
-      case Aeson.eitherDecode @Aeson.Value body of
+      case Cretheus.Decode.fromLazyBytes Cretheus.Decode.value (Http.responseBody response) of
         Left err -> do
-          Text.putStrLn ("JSON parse failure: " <> Text.pack err)
+          Text.putStrLn ("JSON parse failure: " <> err)
           exitFailure
         Right value -> do
           ByteString.Lazy.writeFile stopsFilename (Aeson.Pretty.encodePretty value)
@@ -76,30 +90,117 @@ getStops = do
       Text.putStrLn ("Unexpected response code: " <> Text.pack (show code))
       exitFailure
 
-getRoutesForStop :: Text -> IO ()
-getRoutesForStop stopId = do
+getRoutesForAllStops :: IO ()
+getRoutesForAllStops = do
   mbtaApiKey <- Text.pack <$> Environment.getEnv "MBTA_API_KEY"
 
+  stopsJson <- ByteString.readFile stopsFilename
+  let decoder :: Cretheus.Decoder [Text]
+      decoder =
+        Cretheus.Decode.object $
+          Cretheus.Decode.property "data" $
+            Cretheus.Decode.list $
+              Cretheus.Decode.object $
+                Cretheus.Decode.property "id" Cretheus.Decode.text
+  case Cretheus.Decode.fromBytes decoder stopsJson of
+    Left err -> do
+      Text.putStrLn ("Error parsing " <> Text.pack stopsFilename <> ": " <> err)
+      exitFailure
+    Right stops -> do
+      httpManager <- Http.newManager Http.Tls.tlsManagerSettings
+
+      routes <- do
+        let numStops = length stops
+        Foldable.foldlM
+          ( \acc (i, stopId) -> do
+              Text.putStrLn (Text.pack (show i) <> "/" <> Text.pack (show numStops) <> " Fetching routes for stop " <> stopId)
+              routes <- getRoutesForStop mbtaApiKey httpManager stopId
+              threadDelay 120_000
+              pure $! Map.insert stopId routes acc
+          )
+          Map.empty
+          (zip [(1 :: Int) ..] stops)
+
+      let value =
+            Cretheus.Encode.asValue $
+              Cretheus.Encode.map
+                Aeson.Key.fromText
+                ( Cretheus.Encode.list
+                    ( \(id, shortName, type_) ->
+                        Cretheus.Encode.object
+                          [ Cretheus.Encode.property "id" (Cretheus.Encode.text id),
+                            Cretheus.Encode.property "short_name" (Cretheus.Encode.text shortName),
+                            Cretheus.Encode.property "type" (Cretheus.Encode.int type_)
+                          ]
+                    )
+                )
+                routes
+
+      ByteString.Lazy.writeFile stopRoutesFilename (Aeson.Pretty.encodePretty value)
+      Text.putStrLn ("Wrote " <> Text.pack stopRoutesFilename)
+
+getRoutesForStop :: Text -> Http.Manager -> Text -> IO [(Text, Text, Int)]
+getRoutesForStop mbtaApiKey httpManager stopId = do
   let request :: Http.Request
       request =
-        Http.defaultRequest
-          { Http.method = Http.methodGet,
-            Http.secure = True,
-            Http.host = Text.encodeUtf8 "api-v3.mbta.com",
-            Http.port = 443,
-            Http.path =
-              Http.encodePathSegments ["routes"]
-                & ByteString.Builder.toLazyByteString
-                & ByteString.Lazy.toStrict,
-            Http.queryString =
+        baseRequest
+          { Http.queryString =
               Http.renderQueryText
                 True
                 [ ("fields[route]", Just "short_name,type"),
                   ("filter[stop]", Just stopId)
                 ]
                 & ByteString.Builder.toLazyByteString
-                & ByteString.Lazy.toStrict,
-            Http.requestHeaders = [("X-API-Key", Text.encodeUtf8 mbtaApiKey)]
+                & ByteString.Lazy.toStrict
           }
 
-  pure ()
+  let loop :: Int -> IO [(Text, Text, Int)]
+      loop n
+        | n >= 10 = do
+            Text.putStrLn "Giving up after 10 tries."
+            exitFailure
+        | otherwise = do
+            response <- Http.httpLbs request httpManager
+
+            case Http.statusCode (Http.responseStatus response) of
+              200 -> do
+                let routeDecoder :: Cretheus.Decoder (Text, Text, Int)
+                    routeDecoder =
+                      Cretheus.Decode.object do
+                        id <- Cretheus.Decode.property "id" Cretheus.Decode.text
+                        (shortName, type_) <-
+                          Cretheus.Decode.property
+                            "attributes"
+                            ( Cretheus.Decode.object do
+                                shortName <- Cretheus.Decode.property "short_name" Cretheus.Decode.text
+                                type_ <- Cretheus.Decode.property "type" Cretheus.Decode.int
+                                pure (shortName, type_)
+                            )
+                        pure (id, shortName, type_)
+                let decoder :: Cretheus.Decoder [(Text, Text, Int)]
+                    decoder =
+                      Cretheus.Decode.object (Cretheus.Decode.property "data" (Cretheus.Decode.list routeDecoder))
+                case Cretheus.Decode.fromLazyBytes decoder (Http.responseBody response) of
+                  Left err -> do
+                    Text.putStrLn ("JSON parse failure: " <> err)
+                    exitFailure
+                  Right routes -> pure routes
+              code -> do
+                Text.putStrLn ("Unexpected response code: " <> Text.pack (show code))
+                threadDelay 1_000_000
+                loop (n + 1)
+
+  loop 0
+  where
+    baseRequest =
+      Http.defaultRequest
+        { Http.method = Http.methodGet,
+          Http.secure = True,
+          Http.host = Text.encodeUtf8 "api-v3.mbta.com",
+          Http.port = 443,
+          Http.path =
+            Http.encodePathSegments ["routes"]
+              & ByteString.Builder.toLazyByteString
+              & ByteString.Lazy.toStrict,
+          Http.requestHeaders = [("X-API-Key", Text.encodeUtf8 mbtaApiKey)]
+        }
