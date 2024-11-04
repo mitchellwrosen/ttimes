@@ -21102,6 +21102,13 @@
             "type": 3
         }
     ],
+    "26623": [
+        {
+            "id": "CR-Franklin",
+            "short_name": "",
+            "type": 2
+        }
+    ],
     "2664": [
         {
             "id": "88",
@@ -44796,13 +44803,6 @@
             "type": 3
         }
     ],
-    "5354": [
-        {
-            "id": "104",
-            "short_name": "104",
-            "type": 3
-        }
-    ],
     "53541": [
         {
             "id": "104",
@@ -46225,6 +46225,11 @@
         }
     ],
     "5488": [
+        {
+            "id": "104",
+            "short_name": "104",
+            "type": 3
+        },
         {
             "id": "109",
             "short_name": "109",
@@ -78826,6 +78831,18 @@
             "type": 0
         }
     ],
+    "9070160": [
+        {
+            "id": "558",
+            "short_name": "558",
+            "type": 3
+        },
+        {
+            "id": "Green-D",
+            "short_name": "D",
+            "type": 0
+        }
+    ],
     "9070162": [
         {
             "id": "Green-D",
@@ -78862,6 +78879,18 @@
             "id": "Shuttle-ForestHillsNewtonHighlands",
             "short_name": "Needham Line Shuttle",
             "type": 3
+        }
+    ],
+    "9070169": [
+        {
+            "id": "59",
+            "short_name": "59",
+            "type": 3
+        },
+        {
+            "id": "Green-D",
+            "short_name": "D",
+            "type": 0
         }
     ],
     "9070170": [
@@ -81866,6 +81895,61 @@
             "id": "Orange",
             "short_name": "",
             "type": 1
+        }
+    ],
+    "9370024": [
+        {
+            "id": "210",
+            "short_name": "210",
+            "type": 3
+        },
+        {
+            "id": "211",
+            "short_name": "211",
+            "type": 3
+        },
+        {
+            "id": "215",
+            "short_name": "215",
+            "type": 3
+        },
+        {
+            "id": "217",
+            "short_name": "217",
+            "type": 3
+        },
+        {
+            "id": "Red",
+            "short_name": "",
+            "type": 1
+        }
+    ],
+    "9370028": [
+        {
+            "id": "CR-Franklin",
+            "short_name": "",
+            "type": 2
+        }
+    ],
+    "9370030": [
+        {
+            "id": "CR-Franklin",
+            "short_name": "",
+            "type": 2
+        }
+    ],
+    "9370034": [
+        {
+            "id": "CR-Franklin",
+            "short_name": "",
+            "type": 2
+        }
+    ],
+    "9370036": [
+        {
+            "id": "CR-Franklin",
+            "short_name": "",
+            "type": 2
         }
     ],
     "938": [
@@ -84968,6 +85052,13 @@
             "type": 2
         }
     ],
+    "FB-0109-9370033-B1": [
+        {
+            "id": "CR-Franklin",
+            "short_name": "",
+            "type": 2
+        }
+    ],
     "FB-0118": [
         {
             "id": "CR-Franklin",
@@ -85010,6 +85101,20 @@
             "type": 2
         }
     ],
+    "FB-0125-20620-B0": [
+        {
+            "id": "CR-Franklin",
+            "short_name": "",
+            "type": 2
+        }
+    ],
+    "FB-0125-80619-B1": [
+        {
+            "id": "CR-Franklin",
+            "short_name": "",
+            "type": 2
+        }
+    ],
     "FB-0143": [
         {
             "id": "CR-Franklin",
@@ -85025,6 +85130,20 @@
         }
     ],
     "FB-0143-02": [
+        {
+            "id": "CR-Franklin",
+            "short_name": "",
+            "type": 2
+        }
+    ],
+    "FB-0143-25618-B0": [
+        {
+            "id": "CR-Franklin",
+            "short_name": "",
+            "type": 2
+        }
+    ],
+    "FB-0143-25618-B1": [
         {
             "id": "CR-Franklin",
             "short_name": "",
@@ -85092,6 +85211,13 @@
         }
     ],
     "FB-0230-S": [
+        {
+            "id": "CR-Franklin",
+            "short_name": "",
+            "type": 2
+        }
+    ],
+    "FB-0275-9370035-B-1": [
         {
             "id": "CR-Franklin",
             "short_name": "",
@@ -85897,19 +86023,7 @@
             "type": 2
         }
     ],
-    "FR-0361-B0": [
-        {
-            "id": "CR-Fitchburg",
-            "short_name": "",
-            "type": 2
-        },
-        {
-            "id": "Shuttle-LittletonWachusett",
-            "short_name": "Fitchburg Line Shuttle",
-            "type": 3
-        }
-    ],
-    "FR-0361-B1": [
+    "FR-0361-B2": [
         {
             "id": "CR-Fitchburg",
             "short_name": "",

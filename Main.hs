@@ -33,6 +33,8 @@ import Network.HTTP.Types qualified as Http
 import System.Environment qualified as Environment
 import System.Exit (exitFailure)
 import Prelude hiding (id)
+import qualified Data.List as List
+import Control.Monad (when)
 
 stopsFilename :: FilePath
 stopsFilename = "data/stops.json"
@@ -54,11 +56,14 @@ routesLastModifiedFilename = "data/routes-last-modified.txt"
 
 main :: IO ()
 main = do
-  -- getStops
-  -- getRoutes
-  -- getRoutesForAllStops
-  writeConnectingRoutesForAllStops
-  pure ()
+  let step description action = do
+        Text.putStrLn description
+        answer <- getLine
+        when (List.take 1 answer == "y" || List.take 1 answer == "Y") action
+  step "Get all stop info, including their connecting stops?" getStops
+  step "Get all route info?" getRoutes
+  step "For each stop, get the routes that go through it?" getRoutesForAllStops
+  step "Write out stop connecting routes file with stops and stop route info?" writeConnectingRoutesForAllStops
 
 getStops :: IO ()
 getStops = do
@@ -186,7 +191,7 @@ getRoutesForAllStops = do
           ( \acc (i, stopId) -> do
               Text.putStrLn (Text.pack (show i) <> "/" <> Text.pack (show numStops) <> " Fetching routes for stop " <> stopId)
               routes <- getRoutesForStop mbtaApiKey httpManager stopId
-              threadDelay 120_000
+              threadDelay 200_000
               pure $! Map.insert stopId routes acc
           )
           Map.empty
