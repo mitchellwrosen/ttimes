@@ -32,9 +32,9 @@ import Network.HTTP.Client.TLS qualified as Http.Tls
 import Network.HTTP.Types qualified as Http
 import System.Environment qualified as Environment
 import System.Exit (exitFailure)
-import Prelude hiding (id)
 import qualified Data.List as List
 import Control.Monad (when)
+import Data.Foldable (fold)
 
 stopsFilename :: FilePath
 stopsFilename = "data/stops.json"
@@ -235,7 +235,7 @@ getRoutesForStop mbtaApiKey httpManager stopId = do
                 let routeDecoder :: Cretheus.Decoder (Text, Text, Int)
                     routeDecoder =
                       Cretheus.Decode.object do
-                        id <- Cretheus.Decode.property "id" Cretheus.Decode.text
+                        routeId <- Cretheus.Decode.property "id" Cretheus.Decode.text
                         (shortName, type_) <-
                           Cretheus.Decode.property
                             "attributes"
@@ -244,7 +244,7 @@ getRoutesForStop mbtaApiKey httpManager stopId = do
                                 type_ <- Cretheus.Decode.property "type" Cretheus.Decode.int
                                 pure (shortName, type_)
                             )
-                        pure (id, shortName, type_)
+                        pure (routeId, shortName, type_)
                 let decoder :: Cretheus.Decoder [(Text, Text, Int)]
                     decoder =
                       Cretheus.Decode.object (Cretheus.Decode.property "data" (Cretheus.Decode.list routeDecoder))
@@ -283,7 +283,7 @@ writeConnectingRoutesForAllStops = do
             Cretheus.Decode.property "data" $
               Cretheus.Decode.list $
                 Cretheus.Decode.object do
-                  id <- Cretheus.Decode.property "id" Cretheus.Decode.text
+                  stopId <- Cretheus.Decode.property "id" Cretheus.Decode.text
                   (connectingStops, parentStation) <-
                     Cretheus.Decode.property "relationships" $
                       Cretheus.Decode.object do
@@ -302,7 +302,7 @@ writeConnectingRoutesForAllStops = do
                                   Cretheus.Decode.object $
                                     Cretheus.Decode.property "id" Cretheus.Decode.text
                         pure (connectingStops, parentStation)
-                  pure (id, connectingStops, parentStation)
+                  pure (stopId, connectingStops, parentStation)
     case Cretheus.Decode.fromBytes decoder json of
       Left err -> do
         Text.putStrLn ("Error parsing " <> Text.pack stopsFilename <> ": " <> err)
@@ -318,10 +318,10 @@ writeConnectingRoutesForAllStops = do
             ( Set.fromList
                 <$> Cretheus.Decode.list
                   ( Cretheus.Decode.object do
-                      id <- Cretheus.Decode.property "id" Cretheus.Decode.text
+                      routeId <- Cretheus.Decode.property "id" Cretheus.Decode.text
                       shortName <- Cretheus.Decode.property "short_name" Cretheus.Decode.text
                       type_ <- Cretheus.Decode.property "type" Cretheus.Decode.int
-                      pure (id, shortName, type_)
+                      pure (routeId, shortName, type_)
                   )
             )
     case Cretheus.Decode.fromBytes decoder json of
@@ -330,25 +330,23 @@ writeConnectingRoutesForAllStops = do
         exitFailure
       Right routes -> pure routes
 
-  let stopToConnectingRoutes :: Map Text (Set (Text, Text, Int))
+  let stopToConnectingRoutes :: Map Text (Set (Text, Text, Int), Set (Text, Text, Int))
       stopToConnectingRoutes =
         Map.mapWithKey
           ( \myStopId (connectingStops, maybeParentStation) ->
-              Set.unions
-                [ Set.singleton myStopId,
-                  Set.fromList connectingStops,
-                  case maybeParentStation of
-                    Nothing -> Set.empty
-                    Just parentStation ->
-                      Set.insert
-                        parentStation
-                        ( maybe
-                            Set.empty
-                            (Set.fromList . fst)
-                            (Map.lookup parentStation stops0)
-                        )
-                ]
-                & foldMap \stopId -> Map.findWithDefault Set.empty stopId routes0
+              let myStopIds =
+                    Set.singleton myStopId
+                      & maybe id Set.insert maybeParentStation
+                  connectingStopIds =
+                    Set.union
+                      (Set.fromList connectingStops)
+                      (case maybeParentStation of
+                        Nothing -> Set.empty
+                        Just parentStation -> maybe Set.empty (Set.fromList . fst) (Map.lookup parentStation stops0))
+                  myRouteIds = fold (Map.restrictKeys routes0 myStopIds)
+                  myConnectingRouteIds = Set.difference (fold (Map.restrictKeys routes0 connectingStopIds)) myRouteIds
+              in
+              (myRouteIds, myConnectingRouteIds)
           )
           stops0
 
@@ -356,16 +354,27 @@ writeConnectingRoutesForAllStops = do
         Cretheus.Encode.asValue $
           Cretheus.Encode.map
             Aeson.Key.fromText
-            (Cretheus.Encode.set routeInfoEncoder)
+            (\(myRoutes, connectingRoutes) ->
+              Cretheus.Encode.object
+                [ Cretheus.Encode.optionalProperty "routes"
+                    if Set.null myRoutes
+                      then Nothing
+                      else Just (Cretheus.Encode.set routeInfoEncoder myRoutes)
+                , Cretheus.Encode.optionalProperty "connecting_routes"
+                  if Set.null connectingRoutes
+                    then Nothing
+                    else Just (Cretheus.Encode.set routeInfoEncoder connectingRoutes)
+                ]
+            )
             stopToConnectingRoutes
 
   ByteString.Lazy.writeFile stopConnectingRoutesFilename (Aeson.Pretty.encodePretty value)
   Text.putStrLn ("Wrote " <> Text.pack stopConnectingRoutesFilename)
 
 routeInfoEncoder :: (Text, Text, Int) -> Cretheus.Encoding
-routeInfoEncoder (id, shortName, type_) =
+routeInfoEncoder (routeId, shortName, type_) =
   Cretheus.Encode.object
-    [ Cretheus.Encode.property "id" (Cretheus.Encode.text id),
+    [ Cretheus.Encode.property "id" (Cretheus.Encode.text routeId),
       Cretheus.Encode.property "short_name" (Cretheus.Encode.text shortName),
       Cretheus.Encode.property "type" (Cretheus.Encode.int type_)
     ]
