@@ -315,7 +315,7 @@
         {
             "attributes": {
                 "color": "7C878E",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Logan Airport Terminals",
                     "South Station"
@@ -354,7 +354,7 @@
         {
             "attributes": {
                 "color": "7C878E",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Design Center",
                     "South Station"
@@ -393,7 +393,7 @@
         {
             "attributes": {
                 "color": "7C878E",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Chelsea Station",
                     "South Station"
@@ -432,7 +432,7 @@
         {
             "attributes": {
                 "color": "7C878E",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Nubian Station",
                     "South Station"
@@ -471,7 +471,7 @@
         {
             "attributes": {
                 "color": "7C878E",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Nubian Station",
                     "Temple Place"
@@ -510,7 +510,7 @@
         {
             "attributes": {
                 "color": "7C878E",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Silver Line Way",
                     "South Station"
@@ -549,7 +549,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Fairmount",
                     "South Station"
@@ -588,7 +588,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Wachusett",
                     "North Station"
@@ -627,7 +627,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Worcester",
                     "South Station"
@@ -666,7 +666,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Forge Park/495 or Foxboro",
                     "South Station"
@@ -705,7 +705,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Greenbush",
                     "South Station"
@@ -744,7 +744,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Haverhill",
                     "North Station"
@@ -783,7 +783,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Kingston",
                     "South Station"
@@ -822,7 +822,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Lowell",
                     "North Station"
@@ -861,7 +861,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Middleborough/Lakeville",
                     "South Station"
@@ -900,7 +900,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Needham Heights",
                     "South Station"
@@ -939,7 +939,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Newburyport or Rockport",
                     "North Station"
@@ -978,7 +978,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Stoughton or Wickford Junction",
                     "South Station"
@@ -1017,7 +1017,7 @@
         {
             "attributes": {
                 "color": "80276C",
-                "description": "Commuter Rail",
+                "description": "Regional Rail",
                 "direction_destinations": [
                     "Foxboro or Providence",
                     "South Station or Foxboro"
@@ -1329,7 +1329,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Harvard Square",
                     "Nubian Station"
@@ -1641,7 +1641,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Fields Corner Station or St Peter's Square",
                     "Ruggles Station"
@@ -1758,7 +1758,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Local Bus",
+                "description": "Coverage Bus",
                 "direction_destinations": [
                     "Ashmont Station",
                     "Andrew Station"
@@ -1875,7 +1875,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Ashmont Station",
                     "Ruggles Station"
@@ -1914,7 +1914,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Ashmont Station",
                     "Ruggles Station"
@@ -2031,7 +2031,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Mattapan Station",
                     "Ruggles Station"
@@ -2187,7 +2187,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Wolcott or Cleary Square",
                     "Forest Hills Station"
@@ -2499,7 +2499,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Forest Hills Station",
                     "Back Bay Station"
@@ -2928,7 +2928,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Local Bus",
+                "description": "Coverage Bus",
                 "direction_destinations": [
                     "West Fenway",
                     "Copley Square"
@@ -2967,7 +2967,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Watertown Yard",
                     "Kenmore Station"
@@ -3279,7 +3279,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Harvard Square",
                     "Nubian Station"
@@ -3474,7 +3474,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Watertown Square",
                     "Harvard Station"
@@ -3513,7 +3513,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Waverley Square",
                     "Harvard Station"
@@ -3669,7 +3669,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Arlington Heights",
                     "Harvard Station"
@@ -3866,7 +3866,7 @@
                 "color": "FFC72C",
                 "description": "Local Bus",
                 "direction_destinations": [
-                    "Sullivan Square Station",
+                    "Harvard Square",
                     "Reservoir Station"
                 ],
                 "direction_names": [
@@ -3874,7 +3874,7 @@
                     "Inbound"
                 ],
                 "fare_class": "Local Bus",
-                "long_name": "Sullivan Square Station - Reservoir Station",
+                "long_name": "Harvard Square - Reservoir Station",
                 "short_name": "86",
                 "sort_order": 50860,
                 "text_color": "000000",
@@ -4449,17 +4449,17 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Local Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Malden Center Station",
-                    "Sullivan Square Station"
+                    "Airport Station"
                 ],
                 "direction_names": [
                     "Outbound",
                     "Inbound"
                 ],
                 "fare_class": "Local Bus",
-                "long_name": "Malden Center Station - Sullivan Square Station via Ferry Street",
+                "long_name": "Malden Center Station - Airport Station",
                 "short_name": "104",
                 "sort_order": 51040,
                 "text_color": "000000",
@@ -4478,7 +4478,7 @@
                 },
                 "line": {
                     "data": {
-                        "id": "line-104109",
+                        "id": "line-104",
                         "type": "line"
                     }
                 }
@@ -4605,17 +4605,17 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Local Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Linden Square",
-                    "Sullivan Square Station"
+                    "Harvard Square"
                 ],
                 "direction_names": [
                     "Outbound",
                     "Inbound"
                 ],
                 "fare_class": "Local Bus",
-                "long_name": "Linden Square - Sullivan Square Station",
+                "long_name": "Linden Square - Harvard Square",
                 "short_name": "109",
                 "sort_order": 51090,
                 "text_color": "000000",
@@ -4634,7 +4634,7 @@
                 },
                 "line": {
                     "data": {
-                        "id": "line-104109",
+                        "id": "line-109",
                         "type": "line"
                     }
                 }
@@ -4644,7 +4644,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Local Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Wonderland Station",
                     "Wellington Station"
@@ -4683,7 +4683,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Woodlawn",
                     "Haymarket Station"
@@ -4761,7 +4761,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Community Bus",
+                "description": "Coverage Bus",
                 "direction_destinations": [
                     "Market Basket",
                     "Maverick Station"
@@ -4800,7 +4800,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Wonderland Station",
                     "Maverick Station"
@@ -4810,7 +4810,7 @@
                     "Inbound"
                 ],
                 "fare_class": "Local Bus",
-                "long_name": "Wonderland Station - Maverick Station via Revere Street",
+                "long_name": "Wonderland Station - Maverick Station",
                 "short_name": "116",
                 "sort_order": 51160,
                 "text_color": "000000",
@@ -4839,7 +4839,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Key Bus",
+                "description": "Frequent Bus",
                 "direction_destinations": [
                     "Wonderland Station",
                     "Maverick Station"
@@ -6243,7 +6243,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Commuter Bus",
+                "description": "Coverage Bus",
                 "direction_destinations": [
                     "Nahant",
                     "Wonderland Station"
@@ -6477,7 +6477,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Local Bus",
+                "description": "Coverage Bus",
                 "direction_destinations": [
                     "Salem Depot",
                     "Central Square, Lynn"
@@ -6672,7 +6672,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Local Bus",
+                "description": "Commuter Bus",
                 "direction_destinations": [
                     "Waverley Square",
                     "Newton Corner"
@@ -6867,7 +6867,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Local Bus",
+                "description": "Coverage Bus",
                 "direction_destinations": [
                     "Pemberton Point, Hull",
                     "Station Street, Hingham"
@@ -6906,7 +6906,7 @@
         {
             "attributes": {
                 "color": "FFC72C",
-                "description": "Local Bus",
+                "description": "Coverage Bus",
                 "direction_destinations": [
                     "Cobbs Corner",
                     "Mattapan Station"
