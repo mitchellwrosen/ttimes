@@ -124,6 +124,12 @@ Random water east of BOS, not currently used.
 
 The main Brookline area.
 
+### Malden
+
+#### `malden-1.json`
+
+The main Malden area.
+
 ### Medford
 
 #### `medford-1.json`
