@@ -4615,7 +4615,7 @@
                     "Inbound"
                 ],
                 "fare_class": "Local Bus",
-                "long_name": "Linden Square - Harvard Square",
+                "long_name": "Linden Square - Harvard Square via Sullivan",
                 "short_name": "109",
                 "sort_order": 51090,
                 "text_color": "000000",
@@ -4819,45 +4819,6 @@
             "id": "116",
             "links": {
                 "self": "/routes/116"
-            },
-            "relationships": {
-                "agency": {
-                    "data": {
-                        "id": "1",
-                        "type": "agency"
-                    }
-                },
-                "line": {
-                    "data": {
-                        "id": "line-114116117",
-                        "type": "line"
-                    }
-                }
-            },
-            "type": "route"
-        },
-        {
-            "attributes": {
-                "color": "FFC72C",
-                "description": "Frequent Bus",
-                "direction_destinations": [
-                    "Wonderland Station",
-                    "Maverick Station"
-                ],
-                "direction_names": [
-                    "Outbound",
-                    "Inbound"
-                ],
-                "fare_class": "Local Bus",
-                "long_name": "Wonderland Station - Maverick Station via Beach Street",
-                "short_name": "117",
-                "sort_order": 51170,
-                "text_color": "000000",
-                "type": 3
-            },
-            "id": "117",
-            "links": {
-                "self": "/routes/117"
             },
             "relationships": {
                 "agency": {
