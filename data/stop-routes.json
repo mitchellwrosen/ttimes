@@ -9631,6 +9631,11 @@
             "id": "32",
             "short_name": "32",
             "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
         }
     ],
     "1650": [
@@ -15291,22 +15296,12 @@
             "id": "32",
             "short_name": "32",
             "type": 3
-        },
-        {
-            "id": "33",
-            "short_name": "33",
-            "type": 3
         }
     ],
     "22819": [
         {
             "id": "32",
             "short_name": "32",
-            "type": 3
-        },
-        {
-            "id": "33",
-            "short_name": "33",
             "type": 3
         }
     ],
@@ -15326,11 +15321,6 @@
         {
             "id": "32",
             "short_name": "32",
-            "type": 3
-        },
-        {
-            "id": "33",
-            "short_name": "33",
             "type": 3
         }
     ],
@@ -18748,11 +18738,6 @@
             "id": "32",
             "short_name": "32",
             "type": 3
-        },
-        {
-            "id": "33",
-            "short_name": "33",
-            "type": 3
         }
     ],
     "26467": [
@@ -18767,6 +18752,11 @@
             "id": "32",
             "short_name": "32",
             "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
         }
     ],
     "265": [
@@ -18780,6 +18770,13 @@
         {
             "id": "14",
             "short_name": "14",
+            "type": 3
+        }
+    ],
+    "26531": [
+        {
+            "id": "33",
+            "short_name": "33",
             "type": 3
         }
     ],
@@ -19903,6 +19900,13 @@
             "type": 3
         }
     ],
+    "2783": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
     "2787": [
         {
             "id": "50",
@@ -20128,22 +20132,12 @@
             "id": "32",
             "short_name": "32",
             "type": 3
-        },
-        {
-            "id": "33",
-            "short_name": "33",
-            "type": 3
         }
     ],
     "2819": [
         {
             "id": "32",
             "short_name": "32",
-            "type": 3
-        },
-        {
-            "id": "33",
-            "short_name": "33",
             "type": 3
         },
         {
@@ -24024,11 +24018,6 @@
             "id": "32",
             "short_name": "32",
             "type": 3
-        },
-        {
-            "id": "33",
-            "short_name": "33",
-            "type": 3
         }
     ],
     "3283": [
@@ -27027,11 +27016,6 @@
             "type": 3
         },
         {
-            "id": "33",
-            "short_name": "33",
-            "type": 3
-        },
-        {
             "id": "39",
             "short_name": "39",
             "type": 3
@@ -27058,6 +27042,11 @@
         {
             "id": "32",
             "short_name": "32",
+            "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
             "type": 3
         }
     ],
@@ -32195,11 +32184,6 @@
             "id": "32",
             "short_name": "32",
             "type": 3
-        },
-        {
-            "id": "33",
-            "short_name": "33",
-            "type": 3
         }
     ],
     "42819": [
@@ -34913,6 +34897,11 @@
         {
             "id": "32",
             "short_name": "32",
+            "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
             "type": 3
         }
     ],
@@ -43370,6 +43359,11 @@
             "id": "32",
             "short_name": "32",
             "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
         }
     ],
     "565": [
@@ -43470,11 +43464,6 @@
         {
             "id": "32",
             "short_name": "32",
-            "type": 3
-        },
-        {
-            "id": "33",
-            "short_name": "33",
             "type": 3
         }
     ],
@@ -48420,6 +48409,13 @@
             "type": 3
         }
     ],
+    "6370": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
     "6371": [
         {
             "id": "24",
@@ -48498,6 +48494,13 @@
             "short_name": "24",
             "type": 3
         },
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "6378": [
         {
             "id": "33",
             "short_name": "33",
@@ -48612,11 +48615,6 @@
         {
             "id": "24",
             "short_name": "24",
-            "type": 3
-        },
-        {
-            "id": "33",
-            "short_name": "33",
             "type": 3
         }
     ],
@@ -49414,6 +49412,11 @@
             "id": "32",
             "short_name": "32",
             "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
         }
     ],
     "6496": [
@@ -49426,6 +49429,11 @@
             "id": "32",
             "short_name": "32",
             "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
         }
     ],
     "6498": [
@@ -49437,6 +49445,11 @@
         {
             "id": "32",
             "short_name": "32",
+            "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
             "type": 3
         }
     ],
@@ -49477,12 +49490,22 @@
             "id": "32",
             "short_name": "32",
             "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
         }
     ],
     "6502": [
         {
             "id": "32",
             "short_name": "32",
+            "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
             "type": 3
         }
     ],
@@ -49491,6 +49514,11 @@
             "id": "32",
             "short_name": "32",
             "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
         }
     ],
     "6505": [
@@ -49498,12 +49526,22 @@
             "id": "32",
             "short_name": "32",
             "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
         }
     ],
     "6507": [
         {
             "id": "32",
             "short_name": "32",
+            "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
             "type": 3
         },
         {
@@ -49519,6 +49557,11 @@
             "type": 3
         },
         {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        },
+        {
             "id": "50",
             "short_name": "50",
             "type": 3
@@ -49528,6 +49571,11 @@
         {
             "id": "32",
             "short_name": "32",
+            "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
             "type": 3
         },
         {
@@ -49648,6 +49696,20 @@
         }
     ],
     "6529": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "6530": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "6531": [
         {
             "id": "33",
             "short_name": "33",
@@ -56816,11 +56878,6 @@
             "id": "32",
             "short_name": "32",
             "type": 3
-        },
-        {
-            "id": "33",
-            "short_name": "33",
-            "type": 3
         }
     ],
     "7547": [
@@ -57734,6 +57791,11 @@
         {
             "id": "32",
             "short_name": "32",
+            "type": 3
+        },
+        {
+            "id": "33",
+            "short_name": "33",
             "type": 3
         }
     ],
@@ -62056,6 +62118,13 @@
             "type": 3
         }
     ],
+    "8334": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
     "8335": [
         {
             "id": "33",
@@ -65110,7 +65179,70 @@
             "type": 3
         }
     ],
+    "8940": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "8941": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "89410": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "89411": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "89412": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
     "89413": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "89414": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "8942": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "8943": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "8944": [
         {
             "id": "33",
             "short_name": "33",
@@ -65162,6 +65294,13 @@
             "type": 3
         }
     ],
+    "8950": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
     "8952": [
         {
             "id": "33",
@@ -65177,6 +65316,13 @@
         }
     ],
     "8955": [
+        {
+            "id": "33",
+            "short_name": "33",
+            "type": 3
+        }
+    ],
+    "8958": [
         {
             "id": "33",
             "short_name": "33",
@@ -65289,13 +65435,6 @@
         }
     ],
     "8971": [
-        {
-            "id": "33",
-            "short_name": "33",
-            "type": 3
-        }
-    ],
-    "8973": [
         {
             "id": "33",
             "short_name": "33",
@@ -70150,7 +70289,13 @@
             "type": 2
         }
     ],
-    "FS-0049-S": [],
+    "FS-0049-S": [
+        {
+            "id": "CR-Foxboro",
+            "short_name": "",
+            "type": 2
+        }
+    ],
     "Forest Hills-01": [],
     "Forest Hills-02": [],
     "GB-0198": [],
@@ -70787,6 +70932,11 @@
             "id": "CR-Providence",
             "short_name": "",
             "type": 2
+        },
+        {
+            "id": "CR-Foxboro",
+            "short_name": "",
+            "type": 2
         }
     ],
     "NEC-1851-05": [],
@@ -70799,11 +70949,21 @@
             "id": "CR-Providence",
             "short_name": "",
             "type": 2
+        },
+        {
+            "id": "CR-Foxboro",
+            "short_name": "",
+            "type": 2
         }
     ],
     "NEC-1891-02": [
         {
             "id": "CR-Providence",
+            "short_name": "",
+            "type": 2
+        },
+        {
+            "id": "CR-Foxboro",
             "short_name": "",
             "type": 2
         }
@@ -70824,11 +70984,21 @@
             "id": "CR-Providence",
             "short_name": "",
             "type": 2
+        },
+        {
+            "id": "CR-Foxboro",
+            "short_name": "",
+            "type": 2
         }
     ],
     "NEC-1969-04": [
         {
             "id": "CR-Providence",
+            "short_name": "",
+            "type": 2
+        },
+        {
+            "id": "CR-Foxboro",
             "short_name": "",
             "type": 2
         }
@@ -70840,11 +71010,21 @@
             "id": "CR-Providence",
             "short_name": "",
             "type": 2
+        },
+        {
+            "id": "CR-Foxboro",
+            "short_name": "",
+            "type": 2
         }
     ],
     "NEC-2040-02": [
         {
             "id": "CR-Providence",
+            "short_name": "",
+            "type": 2
+        },
+        {
+            "id": "CR-Foxboro",
             "short_name": "",
             "type": 2
         }
@@ -74806,7 +74986,13 @@
             "type": 2
         }
     ],
-    "place-FS-0049": [],
+    "place-FS-0049": [
+        {
+            "id": "CR-Foxboro",
+            "short_name": "",
+            "type": 2
+        }
+    ],
     "place-GB-0198": [
         {
             "id": "CR-Newburyport",
@@ -75043,11 +75229,21 @@
             "id": "CR-Providence",
             "short_name": "",
             "type": 2
+        },
+        {
+            "id": "CR-Foxboro",
+            "short_name": "",
+            "type": 2
         }
     ],
     "place-NEC-1891": [
         {
             "id": "CR-Providence",
+            "short_name": "",
+            "type": 2
+        },
+        {
+            "id": "CR-Foxboro",
             "short_name": "",
             "type": 2
         }
@@ -75064,11 +75260,21 @@
             "id": "CR-Providence",
             "short_name": "",
             "type": 2
+        },
+        {
+            "id": "CR-Foxboro",
+            "short_name": "",
+            "type": 2
         }
     ],
     "place-NEC-2040": [
         {
             "id": "CR-Providence",
+            "short_name": "",
+            "type": 2
+        },
+        {
+            "id": "CR-Foxboro",
             "short_name": "",
             "type": 2
         }
