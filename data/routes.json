@@ -590,6 +590,45 @@
                 "color": "80276C",
                 "description": "Regional Rail",
                 "direction_destinations": [
+                    "Fall River or New Bedford",
+                    "South Station"
+                ],
+                "direction_names": [
+                    "Outbound",
+                    "Inbound"
+                ],
+                "fare_class": "Commuter Rail",
+                "long_name": "Fall River/New Bedford Line",
+                "short_name": "",
+                "sort_order": 20002,
+                "text_color": "FFFFFF",
+                "type": 2
+            },
+            "id": "CR-NewBedford",
+            "links": {
+                "self": "/routes/CR-NewBedford"
+            },
+            "relationships": {
+                "agency": {
+                    "data": {
+                        "id": "1",
+                        "type": "agency"
+                    }
+                },
+                "line": {
+                    "data": {
+                        "id": "line-NewBedford",
+                        "type": "line"
+                    }
+                }
+            },
+            "type": "route"
+        },
+        {
+            "attributes": {
+                "color": "80276C",
+                "description": "Regional Rail",
+                "direction_destinations": [
                     "Wachusett",
                     "North Station"
                 ],
@@ -600,7 +639,7 @@
                 "fare_class": "Commuter Rail",
                 "long_name": "Fitchburg Line",
                 "short_name": "",
-                "sort_order": 20002,
+                "sort_order": 20003,
                 "text_color": "FFFFFF",
                 "type": 2
             },
@@ -639,7 +678,7 @@
                 "fare_class": "Commuter Rail",
                 "long_name": "Framingham/Worcester Line",
                 "short_name": "",
-                "sort_order": 20003,
+                "sort_order": 20004,
                 "text_color": "FFFFFF",
                 "type": 2
             },
@@ -678,7 +717,7 @@
                 "fare_class": "Commuter Rail",
                 "long_name": "Franklin/Foxboro Line",
                 "short_name": "",
-                "sort_order": 20004,
+                "sort_order": 20005,
                 "text_color": "FFFFFF",
                 "type": 2
             },
@@ -717,7 +756,7 @@
                 "fare_class": "Commuter Rail",
                 "long_name": "Greenbush Line",
                 "short_name": "",
-                "sort_order": 20005,
+                "sort_order": 20006,
                 "text_color": "FFFFFF",
                 "type": 2
             },
@@ -756,7 +795,7 @@
                 "fare_class": "Commuter Rail",
                 "long_name": "Haverhill Line",
                 "short_name": "",
-                "sort_order": 20006,
+                "sort_order": 20007,
                 "text_color": "FFFFFF",
                 "type": 2
             },
@@ -795,7 +834,7 @@
                 "fare_class": "Commuter Rail",
                 "long_name": "Kingston Line",
                 "short_name": "",
-                "sort_order": 20007,
+                "sort_order": 20008,
                 "text_color": "FFFFFF",
                 "type": 2
             },
@@ -834,7 +873,7 @@
                 "fare_class": "Commuter Rail",
                 "long_name": "Lowell Line",
                 "short_name": "",
-                "sort_order": 20008,
+                "sort_order": 20009,
                 "text_color": "FFFFFF",
                 "type": 2
             },
@@ -863,45 +902,6 @@
                 "color": "80276C",
                 "description": "Regional Rail",
                 "direction_destinations": [
-                    "Middleborough/Lakeville",
-                    "South Station"
-                ],
-                "direction_names": [
-                    "Outbound",
-                    "Inbound"
-                ],
-                "fare_class": "Commuter Rail",
-                "long_name": "Middleborough/Lakeville Line",
-                "short_name": "",
-                "sort_order": 20009,
-                "text_color": "FFFFFF",
-                "type": 2
-            },
-            "id": "CR-Middleborough",
-            "links": {
-                "self": "/routes/CR-Middleborough"
-            },
-            "relationships": {
-                "agency": {
-                    "data": {
-                        "id": "1",
-                        "type": "agency"
-                    }
-                },
-                "line": {
-                    "data": {
-                        "id": "line-Middleborough",
-                        "type": "line"
-                    }
-                }
-            },
-            "type": "route"
-        },
-        {
-            "attributes": {
-                "color": "80276C",
-                "description": "Regional Rail",
-                "direction_destinations": [
                     "Needham Heights",
                     "South Station"
                 ],
@@ -912,7 +912,7 @@
                 "fare_class": "Commuter Rail",
                 "long_name": "Needham Line",
                 "short_name": "",
-                "sort_order": 20010,
+                "sort_order": 20011,
                 "text_color": "FFFFFF",
                 "type": 2
             },
@@ -951,7 +951,7 @@
                 "fare_class": "Commuter Rail",
                 "long_name": "Newburyport/Rockport Line",
                 "short_name": "",
-                "sort_order": 20011,
+                "sort_order": 20012,
                 "text_color": "FFFFFF",
                 "type": 2
             },
@@ -990,7 +990,7 @@
                 "fare_class": "Commuter Rail",
                 "long_name": "Providence/Stoughton Line",
                 "short_name": "",
-                "sort_order": 20012,
+                "sort_order": 20013,
                 "text_color": "FFFFFF",
                 "type": 2
             },
@@ -1029,7 +1029,7 @@
                 "fare_class": "Special",
                 "long_name": "Foxboro Event Service",
                 "short_name": "",
-                "sort_order": 20013,
+                "sort_order": 20014,
                 "text_color": "FFFFFF",
                 "type": 2
             },
