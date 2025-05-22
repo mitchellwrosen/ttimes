@@ -8,6 +8,7 @@ module Main where
 
 import Control.Applicative ((<|>))
 import Control.Concurrent (threadDelay)
+import Control.Monad (when)
 import Cretheus.Decode qualified
 import Cretheus.Decode qualified as Cretheus (Decoder)
 import Cretheus.Encode qualified
@@ -17,8 +18,10 @@ import Data.Aeson.Key qualified as Aeson.Key
 import Data.ByteString qualified as ByteString
 import Data.ByteString.Builder qualified as ByteString.Builder
 import Data.ByteString.Lazy qualified as ByteString.Lazy
+import Data.Foldable (fold)
 import Data.Foldable qualified as Foldable
 import Data.Function ((&))
+import Data.List qualified as List
 import Data.Map (Map)
 import Data.Map.Strict qualified as Map
 import Data.Set (Set)
@@ -32,9 +35,12 @@ import Network.HTTP.Client.TLS qualified as Http.Tls
 import Network.HTTP.Types qualified as Http
 import System.Environment qualified as Environment
 import System.Exit (exitFailure)
-import qualified Data.List as List
-import Control.Monad (when)
-import Data.Foldable (fold)
+
+connectingStopsFilename :: FilePath
+connectingStopsFilename = "data/connecting-stops.json"
+
+connectingStopsLastModifiedFilename :: FilePath
+connectingStopsLastModifiedFilename = "data/connecting-stops-last-modified.txt"
 
 stopsFilename :: FilePath
 stopsFilename = "data/stops.json"
@@ -61,6 +67,7 @@ main = do
         answer <- getLine
         when (List.take 1 answer == "y" || List.take 1 answer == "Y") action
   step "Get all stop info, including their connecting stops?" getStops
+  step "Get connecting stop info, a subset of all stop info?" getConnectingStops
   step "Get all route info?" getRoutes
   step "For each stop, get the routes that go through it?" getRoutesForAllStops
   step "Write out stop connecting routes file with stops and stop route info?" writeConnectingRoutesForAllStops
@@ -115,6 +122,87 @@ getStops = do
               ByteString.writeFile stopsLastModifiedFilename lastModified
               Text.putStrLn ("Wrote " <> Text.pack stopsLastModifiedFilename)
     304 -> Text.putStrLn (Text.pack stopsFilename <> " is up-to-date.")
+    code -> do
+      Text.putStrLn ("Unexpected response code: " <> Text.pack (show code))
+      exitFailure
+
+getConnectingStops :: IO ()
+getConnectingStops = do
+  mbtaApiKey <- Text.pack <$> Environment.getEnv "MBTA_API_KEY"
+  httpManager <- Http.newManager Http.Tls.tlsManagerSettings
+
+  maybeLastModified <-
+    (Just <$> ByteString.readFile connectingStopsLastModifiedFilename) <|> pure Nothing
+
+  let request :: Http.Request
+      request =
+        Http.defaultRequest
+          { Http.host = Text.encodeUtf8 "api-v3.mbta.com",
+            Http.method = Http.methodGet,
+            Http.path =
+              Http.encodePathSegments ["stops"]
+                & ByteString.Builder.toLazyByteString
+                & ByteString.Lazy.toStrict,
+            Http.port = 443,
+            Http.queryString =
+              Http.renderQueryText
+                True
+                [ ("fields[stop]", Nothing),
+                  ("include", Just "connecting_stops")
+                ]
+                & ByteString.Builder.toLazyByteString
+                & ByteString.Lazy.toStrict,
+            Http.requestHeaders =
+              ("X-API-Key", Text.encodeUtf8 mbtaApiKey)
+                : case maybeLastModified of
+                  Nothing -> []
+                  Just lastModified -> [(Http.hIfModifiedSince, lastModified)],
+            Http.secure = True
+          }
+
+  response <- Http.httpLbs request httpManager
+
+  case Http.statusCode (Http.responseStatus response) of
+    200 -> do
+      let decoder :: Cretheus.Decoder [(Text, [Text])]
+          decoder =
+            Cretheus.Decode.object $
+              Cretheus.Decode.property "data" $
+                Cretheus.Decode.list $
+                  Cretheus.Decode.object $
+                    (,)
+                      <$> Cretheus.Decode.property "id" Cretheus.Decode.text
+                      <*> ( Cretheus.Decode.property "relationships" $
+                              Cretheus.Decode.object do
+                                Cretheus.Decode.property "connecting_stops" $
+                                  Cretheus.Decode.object $
+                                    Cretheus.Decode.property "data" $
+                                      Cretheus.Decode.list $
+                                        Cretheus.Decode.object $
+                                          Cretheus.Decode.property "id" Cretheus.Decode.text
+                          )
+      case Cretheus.Decode.fromLazyBytes decoder (Http.responseBody response) of
+        Left err -> do
+          Text.putStrLn ("JSON parse failure: " <> err)
+          exitFailure
+        Right connectingStops0 -> do
+          let connectingStops :: Map Text [Text]
+              connectingStops =
+                List.foldl'
+                  ( \acc -> \case
+                      (_, []) -> acc
+                      (stop, stops) -> Map.insert stop (List.sort stops) acc
+                  )
+                  Map.empty
+                  connectingStops0
+          ByteString.Lazy.writeFile connectingStopsFilename (Aeson.Pretty.encodePretty connectingStops)
+          Text.putStrLn ("Wrote " <> Text.pack connectingStopsFilename)
+          case lookup Http.hLastModified (Http.responseHeaders response) of
+            Nothing -> pure ()
+            Just lastModified -> do
+              ByteString.writeFile connectingStopsLastModifiedFilename lastModified
+              Text.putStrLn ("Wrote " <> Text.pack connectingStopsLastModifiedFilename)
+    304 -> Text.putStrLn (Text.pack connectingStopsFilename <> " is up-to-date.")
     code -> do
       Text.putStrLn ("Unexpected response code: " <> Text.pack (show code))
       exitFailure
@@ -340,13 +428,13 @@ writeConnectingRoutesForAllStops = do
                   connectingStopIds =
                     Set.union
                       (Set.fromList connectingStops)
-                      (case maybeParentStation of
-                        Nothing -> Set.empty
-                        Just parentStation -> maybe Set.empty (Set.fromList . fst) (Map.lookup parentStation stops0))
+                      ( case maybeParentStation of
+                          Nothing -> Set.empty
+                          Just parentStation -> maybe Set.empty (Set.fromList . fst) (Map.lookup parentStation stops0)
+                      )
                   myRouteIds = fold (Map.restrictKeys routes0 myStopIds)
                   myConnectingRouteIds = Set.difference (fold (Map.restrictKeys routes0 connectingStopIds)) myRouteIds
-              in
-              (myRouteIds, myConnectingRouteIds)
+               in (myRouteIds, myConnectingRouteIds)
           )
           stops0
 
@@ -354,17 +442,19 @@ writeConnectingRoutesForAllStops = do
         Cretheus.Encode.asValue $
           Cretheus.Encode.map
             Aeson.Key.fromText
-            (\(myRoutes, connectingRoutes) ->
-              Cretheus.Encode.object
-                [ Cretheus.Encode.optionalProperty "routes"
-                    if Set.null myRoutes
-                      then Nothing
-                      else Just (Cretheus.Encode.set routeInfoEncoder myRoutes)
-                , Cretheus.Encode.optionalProperty "connecting_routes"
-                  if Set.null connectingRoutes
-                    then Nothing
-                    else Just (Cretheus.Encode.set routeInfoEncoder connectingRoutes)
-                ]
+            ( \(myRoutes, connectingRoutes) ->
+                Cretheus.Encode.object
+                  [ Cretheus.Encode.optionalProperty
+                      "routes"
+                      if Set.null myRoutes
+                        then Nothing
+                        else Just (Cretheus.Encode.set routeInfoEncoder myRoutes),
+                    Cretheus.Encode.optionalProperty
+                      "connecting_routes"
+                      if Set.null connectingRoutes
+                        then Nothing
+                        else Just (Cretheus.Encode.set routeInfoEncoder connectingRoutes)
+                  ]
             )
             stopToConnectingRoutes
 
