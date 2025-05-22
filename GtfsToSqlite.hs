@@ -44,6 +44,37 @@ instance Cassava.FromNamedRecord RoutesRow where
       <*> Cassava.lookup record "listed_route"
       <*> Cassava.lookup record "network_id"
 
+data StopTimesRow = StopTimesRow
+  { tripId :: !Text,
+    arrivalTime :: !Text,
+    departureTime :: !Text,
+    stopId :: !Text,
+    stopSequence :: !Int,
+    stopHeadsign :: !Text,
+    pickupType :: !Int,
+    dropOffType :: !Int,
+    timepoint :: !Int,
+    checkpointId :: !Text,
+    continuousPickup :: !(Maybe Int),
+    continuousDropoff :: !(Maybe Int)
+  }
+
+instance Cassava.FromNamedRecord StopTimesRow where
+  parseNamedRecord record =
+    StopTimesRow
+      <$> Cassava.lookup record "trip_id"
+      <*> Cassava.lookup record "arrival_time"
+      <*> Cassava.lookup record "departure_time"
+      <*> Cassava.lookup record "stop_id"
+      <*> Cassava.lookup record "stop_sequence"
+      <*> Cassava.lookup record "stop_headsign"
+      <*> Cassava.lookup record "pickup_type"
+      <*> Cassava.lookup record "drop_off_type"
+      <*> Cassava.lookup record "timepoint"
+      <*> Cassava.lookup record "checkpoint_id"
+      <*> Cassava.lookup record "continuous_pickup"
+      <*> Cassava.lookup record "continuous_drop_off"
+
 data StopsRow
   = StopsRow
   { stopId :: !Text,
@@ -158,6 +189,32 @@ main = do
               Sqlite.reset statement
               Sqlite.clearBindings statement
 
+    step "Insert MBTA_GTFS/stop_times.txt into mbta_gtfs.sqlite?" do
+      bytes <- LazyByteString.readFile "MBTA_GTFS/stop_times.txt"
+      case Cassava.decodeByName @StopTimesRow bytes of
+        Left err -> error ("bad header: " ++ err)
+        Right (_header, records) -> do
+          Sqlite.withStatement database "DELETE FROM stop_times" \statement -> do
+            _ <- Sqlite.stepNoCB statement
+            pure ()
+          Sqlite.withStatement database "INSERT INTO stop_times VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" \statement ->
+            forRecords records \stopTime -> do
+              bindTextOrNull statement 1 stopTime.tripId
+              bindTextOrNull statement 2 stopTime.arrivalTime
+              bindTextOrNull statement 3 stopTime.departureTime
+              bindTextOrNull statement 4 stopTime.stopId
+              Sqlite.bindInt statement 5 stopTime.stopSequence
+              bindTextOrNull statement 6 stopTime.stopHeadsign
+              Sqlite.bindInt statement 7 stopTime.pickupType
+              Sqlite.bindInt statement 8 stopTime.dropOffType
+              Sqlite.bindInt statement 9 stopTime.timepoint
+              bindTextOrNull statement 10 stopTime.checkpointId
+              bindMaybeInt statement 11 stopTime.continuousPickup
+              bindMaybeInt statement 12 stopTime.continuousDropoff
+              _ <- Sqlite.stepNoCB statement
+              Sqlite.reset statement
+              Sqlite.clearBindings statement
+
     step "Insert MBTA_GTFS/stops.txt into mbta_gtfs.sqlite?" do
       bytes <- LazyByteString.readFile "MBTA_GTFS/stops.txt"
       case Cassava.decodeByName @StopsRow bytes of
@@ -219,14 +276,16 @@ main = do
 
 forRecords :: Cassava.Records a -> (a -> IO ()) -> IO ()
 forRecords records0 f =
-  let loop = \case
+  let loop n = \case
         Cassava.Cons (Right record) records1 -> do
+          when (mod n 1000 == 0) do
+            Text.putStrLn ("Processing record " <> Text.pack (show n))
           f record
-          loop records1
+          loop (n + 1) records1
         Cassava.Nil Nothing _ -> pure ()
         Cassava.Cons (Left err) _ -> error err
         Cassava.Nil (Just err) _ -> error err
-   in loop records0
+   in loop (1 :: Int) records0
 
 bindMaybeInt :: Sqlite.Statement -> Sqlite.ParamIndex -> Maybe Int -> IO ()
 bindMaybeInt statement index = \case

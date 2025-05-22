@@ -15,6 +15,22 @@ CREATE TABLE IF NOT EXISTS routes (
   network_id TEXT NOT NULL
 ) WITHOUT ROWID;
 
+CREATE TABLE IF NOT EXISTS stop_times (
+  trip_id TEXT NOT NULL,
+  arrival_time TEXT NOT NULL,
+  departure_time TEXT NOT NULL,
+  stop_id TEXT NOT NULL,
+  stop_sequence INTEGER NOT NULL,
+  stop_headsign TEXT,
+  pickup_type INTEGER NOT NULL,
+  drop_off_type INTEGER NOT NULL,
+  timepoint INTEGER NOT NULL,
+  checkpoint_id TEXT,
+  continuous_pickup INTEGER,
+  continuous_drop_off INTEGER,
+  PRIMARY KEY (trip_id, stop_sequence)
+) WITHOUT ROWID;
+
 CREATE TABLE IF NOT EXISTS stops (
   stop_id TEXT NOT NULL PRIMARY KEY,
   stop_code TEXT,
