@@ -56,8 +56,8 @@ CREATE TABLE IF NOT EXISTS stops (
   stop_desc TEXT,
   platform_code TEXT,
   platform_name TEXT,
-  stop_lat REAL NOT NULL,
-  stop_lon REAL NOT NULL,
+  stop_lat REAL,
+  stop_lon REAL,
   zone_id TEXT,
   stop_address TEXT,
   stop_url TEXT,
@@ -68,8 +68,12 @@ CREATE TABLE IF NOT EXISTS stops (
   municipality TEXT NOT NULL,
   on_street TEXT,
   at_street TEXT,
-  vehicle_type INTEGER NOT NULL
+  vehicle_type INTEGER
 ) WITHOUT ROWID;
+
+CREATE INDEX IF NOT EXISTS stops_parent_station_index
+  ON stops (parent_station)
+  WHERE parent_station IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS stops_md5 (
   md5 BLOB NOT NULL PRIMARY KEY

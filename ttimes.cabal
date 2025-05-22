@@ -21,9 +21,12 @@ executable ttimes
 
 executable gtfs2sqlite
   build-depends:
+    aeson,
     base,
     bytestring,
     cassava,
+    containers,
+    cretheus,
     cryptohash-md5,
     direct-sqlite,
     text,

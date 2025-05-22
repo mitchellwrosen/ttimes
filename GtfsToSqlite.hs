@@ -1,9 +1,15 @@
 import Control.Monad (when)
+import Cretheus.Decode qualified
+import Cretheus.Decode qualified as Cretheus (Decoder)
 import Crypto.Hash.MD5 qualified as Md5
+import Data.Aeson.Key qualified as Aeson.Key
 import Data.ByteString.Lazy qualified as LazyByteString
 import Data.Csv qualified as Cassava (FromNamedRecord (..), lookup)
 import Data.Csv.Streaming qualified as Cassava
+import Data.Foldable (for_)
 import Data.List qualified as List
+import Data.Map.Strict (Map)
+import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.IO.Utf8 qualified as Text
@@ -84,8 +90,8 @@ data StopsRow
     stopDesc :: !Text,
     platformCode :: !Text,
     platformName :: !Text,
-    stopLat :: !Double,
-    stopLon :: !Double,
+    stopLat :: !(Maybe Double),
+    stopLon :: !(Maybe Double),
     zoneId :: !Text,
     stopAddress :: !Text,
     stopUrl :: !Text,
@@ -96,7 +102,7 @@ data StopsRow
     municipality :: !Text,
     onStreet :: !Text,
     atStreet :: !Text,
-    vehicleType :: !Int
+    vehicleType :: !(Maybe Int)
   }
 
 instance Cassava.FromNamedRecord StopsRow where
@@ -162,6 +168,49 @@ main = do
         when (List.take 1 answer == "y" || List.take 1 answer == "Y") action
 
   Sqlite.withDatabase "mbta_gtfs.sqlite" \database -> do
+    do
+      bytes <- LazyByteString.readFile "data/connecting-stops.json"
+      let md5 = Md5.hashlazy bytes
+      storedMd5 <-
+        Sqlite.withStatement database "SELECT md5 FROM connecting_stops_md5" \statement -> do
+          Sqlite.stepNoCB statement >>= \case
+            Sqlite.Row -> Just <$> Sqlite.columnBlob statement 0
+            Sqlite.Done -> pure Nothing
+
+      if Just md5 == storedMd5
+        then Text.putStrLn "connecting_stops table in mbta_gtfs.sqlite is up-to-date with data/connecting-stops.json"
+        else do
+          Text.putStrLn "connecting_stops table in mbta_gtfs.sqlite is not up-to-date with data/connecting-stops.json"
+          step "Insert data/connecting-stops.json into mbta_gtfs.sqlite?" do
+            let decoder :: Cretheus.Decoder (Map Text [Text])
+                decoder =
+                  Cretheus.Decode.map Aeson.Key.toText (Cretheus.Decode.list Cretheus.Decode.text)
+            case Cretheus.Decode.fromLazyBytes decoder bytes of
+              Left err -> error (Text.unpack err)
+              Right connectingStops -> do
+                Sqlite.withStatement database "DELETE FROM connecting_stops" \statement -> do
+                  _ <- Sqlite.stepNoCB statement
+                  pure ()
+                Sqlite.withStatement database "INSERT INTO connecting_stops VALUES (?, ?)" \statement ->
+                  for_ (Map.toList connectingStops) \(stopId, connectingStopIds) ->
+                    for_ connectingStopIds \connectingStopId -> do
+                      bindTextOrNull statement 1 stopId
+                      bindTextOrNull statement 2 connectingStopId
+                      _ <- Sqlite.stepNoCB statement
+                      Sqlite.reset statement
+                      Sqlite.clearBindings statement
+                case storedMd5 of
+                  Just _ ->
+                    Sqlite.withStatement database "UPDATE connecting_stops_md5 SET md5 = ?" \statement -> do
+                      Sqlite.bindBlob statement 1 md5
+                      _ <- Sqlite.stepNoCB statement
+                      pure ()
+                  Nothing -> do
+                    Sqlite.withStatement database "INSERT INTO connecting_stops_md5 VALUES (?)" \statement -> do
+                      Sqlite.bindBlob statement 1 md5
+                      _ <- Sqlite.stepNoCB statement
+                      pure ()
+
     do
       bytes <- LazyByteString.readFile "MBTA_GTFS/routes.txt"
       let md5 = Md5.hashlazy bytes
@@ -289,8 +338,8 @@ main = do
                     bindTextOrNull statement 4 stop.stopDesc
                     bindTextOrNull statement 5 stop.platformCode
                     bindTextOrNull statement 6 stop.platformName
-                    Sqlite.bindDouble statement 7 stop.stopLat
-                    Sqlite.bindDouble statement 8 stop.stopLon
+                    bindMaybeDouble statement 7 stop.stopLat
+                    bindMaybeDouble statement 8 stop.stopLon
                     bindTextOrNull statement 9 stop.zoneId
                     bindTextOrNull statement 10 stop.stopAddress
                     bindTextOrNull statement 11 stop.stopUrl
@@ -301,7 +350,7 @@ main = do
                     bindTextOrNull statement 16 stop.municipality
                     bindTextOrNull statement 17 stop.onStreet
                     bindTextOrNull statement 18 stop.atStreet
-                    Sqlite.bindInt statement 19 stop.vehicleType
+                    bindMaybeInt statement 19 stop.vehicleType
                     _ <- Sqlite.stepNoCB statement
                     Sqlite.reset statement
                     Sqlite.clearBindings statement
@@ -382,6 +431,11 @@ forRecords records0 f =
 bindMaybeInt :: Sqlite.Statement -> Sqlite.ParamIndex -> Maybe Int -> IO ()
 bindMaybeInt statement index = \case
   Just n -> Sqlite.bindInt statement index n
+  Nothing -> Sqlite.bindNull statement index
+
+bindMaybeDouble :: Sqlite.Statement -> Sqlite.ParamIndex -> Maybe Double -> IO ()
+bindMaybeDouble statement index = \case
+  Just n -> Sqlite.bindDouble statement index n
   Nothing -> Sqlite.bindNull statement index
 
 bindTextOrNull :: Sqlite.Statement -> Sqlite.ParamIndex -> Text -> IO ()
