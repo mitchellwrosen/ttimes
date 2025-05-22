@@ -24,6 +24,7 @@ executable gtfs2sqlite
     base,
     bytestring,
     cassava,
+    cryptohash-md5,
     direct-sqlite,
     text,
   default-extensions:

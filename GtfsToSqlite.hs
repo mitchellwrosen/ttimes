@@ -1,4 +1,5 @@
 import Control.Monad (when)
+import Crypto.Hash.MD5 qualified as Md5
 import Data.ByteString.Lazy qualified as LazyByteString
 import Data.Csv qualified as Cassava (FromNamedRecord (..), lookup)
 import Data.Csv.Streaming qualified as Cassava
@@ -161,118 +162,209 @@ main = do
         when (List.take 1 answer == "y" || List.take 1 answer == "Y") action
 
   Sqlite.withDatabase "mbta_gtfs.sqlite" \database -> do
-    step "Insert MBTA_GTFS/routes.txt into mbta_gtfs.sqlite?" do
+    do
       bytes <- LazyByteString.readFile "MBTA_GTFS/routes.txt"
-      case Cassava.decodeByName @RoutesRow bytes of
-        Left err -> error ("bad header: " ++ err)
-        Right (_header, records) -> do
-          Sqlite.withStatement database "DELETE FROM routes" \statement -> do
-            _ <- Sqlite.stepNoCB statement
-            pure ()
-          Sqlite.withStatement database "INSERT INTO routes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" \statement ->
-            forRecords records \route -> do
-              bindTextOrNull statement 1 route.routeId
-              Sqlite.bindInt statement 2 route.agencyId
-              bindTextOrNull statement 3 route.routeShortName
-              bindTextOrNull statement 4 route.routeLongName
-              bindTextOrNull statement 5 route.routeDesc
-              Sqlite.bindInt statement 6 route.routeType
-              bindTextOrNull statement 7 route.routeUrl
-              bindTextOrNull statement 8 route.routeColor
-              bindTextOrNull statement 9 route.routeTextColor
-              Sqlite.bindInt statement 10 route.routeSortOrder
-              bindTextOrNull statement 11 route.routeFareClass
-              bindTextOrNull statement 12 route.lineId
-              bindMaybeInt statement 13 route.listedRoute
-              bindTextOrNull statement 14 route.networkId
-              _ <- Sqlite.stepNoCB statement
-              Sqlite.reset statement
-              Sqlite.clearBindings statement
+      let md5 = Md5.hashlazy bytes
+      storedMd5 <-
+        Sqlite.withStatement database "SELECT md5 FROM routes_md5" \statement -> do
+          Sqlite.stepNoCB statement >>= \case
+            Sqlite.Row -> Just <$> Sqlite.columnBlob statement 0
+            Sqlite.Done -> pure Nothing
 
-    step "Insert MBTA_GTFS/stop_times.txt into mbta_gtfs.sqlite?" do
+      if Just md5 == storedMd5
+        then Text.putStrLn "routes table in mbta_gtfs.sqlite is up-to-date with MBTA_GTFS/routes.txt"
+        else do
+          Text.putStrLn "routes table in mbta_gtfs.sqlite is not up-to-date with MBTA_GTFS/routes.txt"
+          step "Insert MBTA_GTFS/routes.txt into mbta_gtfs.sqlite?" do
+            case Cassava.decodeByName @RoutesRow bytes of
+              Left err -> error ("bad header: " ++ err)
+              Right (_header, records) -> do
+                Sqlite.withStatement database "DELETE FROM routes" \statement -> do
+                  _ <- Sqlite.stepNoCB statement
+                  pure ()
+                Sqlite.withStatement database "INSERT INTO routes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" \statement ->
+                  forRecords records \route -> do
+                    bindTextOrNull statement 1 route.routeId
+                    Sqlite.bindInt statement 2 route.agencyId
+                    bindTextOrNull statement 3 route.routeShortName
+                    bindTextOrNull statement 4 route.routeLongName
+                    bindTextOrNull statement 5 route.routeDesc
+                    Sqlite.bindInt statement 6 route.routeType
+                    bindTextOrNull statement 7 route.routeUrl
+                    bindTextOrNull statement 8 route.routeColor
+                    bindTextOrNull statement 9 route.routeTextColor
+                    Sqlite.bindInt statement 10 route.routeSortOrder
+                    bindTextOrNull statement 11 route.routeFareClass
+                    bindTextOrNull statement 12 route.lineId
+                    bindMaybeInt statement 13 route.listedRoute
+                    bindTextOrNull statement 14 route.networkId
+                    _ <- Sqlite.stepNoCB statement
+                    Sqlite.reset statement
+                    Sqlite.clearBindings statement
+                case storedMd5 of
+                  Just _ ->
+                    Sqlite.withStatement database "UPDATE routes_md5 SET md5 = ?" \statement -> do
+                      Sqlite.bindBlob statement 1 md5
+                      _ <- Sqlite.stepNoCB statement
+                      pure ()
+                  Nothing -> do
+                    Sqlite.withStatement database "INSERT INTO routes_md5 VALUES (?)" \statement -> do
+                      Sqlite.bindBlob statement 1 md5
+                      _ <- Sqlite.stepNoCB statement
+                      pure ()
+
+    do
       bytes <- LazyByteString.readFile "MBTA_GTFS/stop_times.txt"
-      case Cassava.decodeByName @StopTimesRow bytes of
-        Left err -> error ("bad header: " ++ err)
-        Right (_header, records) -> do
-          Sqlite.withStatement database "DELETE FROM stop_times" \statement -> do
-            _ <- Sqlite.stepNoCB statement
-            pure ()
-          Sqlite.withStatement database "INSERT INTO stop_times VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" \statement ->
-            forRecords records \stopTime -> do
-              bindTextOrNull statement 1 stopTime.tripId
-              bindTextOrNull statement 2 stopTime.arrivalTime
-              bindTextOrNull statement 3 stopTime.departureTime
-              bindTextOrNull statement 4 stopTime.stopId
-              Sqlite.bindInt statement 5 stopTime.stopSequence
-              bindTextOrNull statement 6 stopTime.stopHeadsign
-              Sqlite.bindInt statement 7 stopTime.pickupType
-              Sqlite.bindInt statement 8 stopTime.dropOffType
-              Sqlite.bindInt statement 9 stopTime.timepoint
-              bindTextOrNull statement 10 stopTime.checkpointId
-              bindMaybeInt statement 11 stopTime.continuousPickup
-              bindMaybeInt statement 12 stopTime.continuousDropoff
-              _ <- Sqlite.stepNoCB statement
-              Sqlite.reset statement
-              Sqlite.clearBindings statement
+      let md5 = Md5.hashlazy bytes
+      storedMd5 <-
+        Sqlite.withStatement database "SELECT md5 FROM stop_times_md5" \statement -> do
+          Sqlite.stepNoCB statement >>= \case
+            Sqlite.Row -> Just <$> Sqlite.columnBlob statement 0
+            Sqlite.Done -> pure Nothing
 
-    step "Insert MBTA_GTFS/stops.txt into mbta_gtfs.sqlite?" do
+      if Just md5 == storedMd5
+        then Text.putStrLn "stop_times table in mbta_gtfs.sqlite is up-to-date with MBTA_GTFS/stop_times.txt"
+        else do
+          Text.putStrLn "stop_times table in mbta_gtfs.sqlite is not up-to-date with MBTA_GTFS/stop_times.txt"
+          step "Insert MBTA_GTFS/stop_times.txt into mbta_gtfs.sqlite?" do
+            case Cassava.decodeByName @StopTimesRow bytes of
+              Left err -> error ("bad header: " ++ err)
+              Right (_header, records) -> do
+                Sqlite.withStatement database "DELETE FROM stop_times" \statement -> do
+                  _ <- Sqlite.stepNoCB statement
+                  pure ()
+                Sqlite.withStatement database "INSERT INTO stop_times VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" \statement ->
+                  forRecords records \stopTime -> do
+                    bindTextOrNull statement 1 stopTime.tripId
+                    bindTextOrNull statement 2 stopTime.arrivalTime
+                    bindTextOrNull statement 3 stopTime.departureTime
+                    bindTextOrNull statement 4 stopTime.stopId
+                    Sqlite.bindInt statement 5 stopTime.stopSequence
+                    bindTextOrNull statement 6 stopTime.stopHeadsign
+                    Sqlite.bindInt statement 7 stopTime.pickupType
+                    Sqlite.bindInt statement 8 stopTime.dropOffType
+                    Sqlite.bindInt statement 9 stopTime.timepoint
+                    bindTextOrNull statement 10 stopTime.checkpointId
+                    bindMaybeInt statement 11 stopTime.continuousPickup
+                    bindMaybeInt statement 12 stopTime.continuousDropoff
+                    _ <- Sqlite.stepNoCB statement
+                    Sqlite.reset statement
+                    Sqlite.clearBindings statement
+                case storedMd5 of
+                  Just _ ->
+                    Sqlite.withStatement database "UPDATE stop_times_md5 SET md5 = ?" \statement -> do
+                      Sqlite.bindBlob statement 1 md5
+                      _ <- Sqlite.stepNoCB statement
+                      pure ()
+                  Nothing -> do
+                    Sqlite.withStatement database "INSERT INTO stop_times_md5 VALUES (?)" \statement -> do
+                      Sqlite.bindBlob statement 1 md5
+                      _ <- Sqlite.stepNoCB statement
+                      pure ()
+    do
       bytes <- LazyByteString.readFile "MBTA_GTFS/stops.txt"
-      case Cassava.decodeByName @StopsRow bytes of
-        Left err -> error ("bad header: " ++ err)
-        Right (_header, records) -> do
-          Sqlite.withStatement database "DELETE FROM stops" \statement -> do
-            _ <- Sqlite.stepNoCB statement
-            pure ()
-          Sqlite.withStatement database "INSERT INTO stops VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" \statement ->
-            forRecords records \stop -> do
-              bindTextOrNull statement 1 stop.stopId
-              bindTextOrNull statement 2 stop.stopCode
-              bindTextOrNull statement 3 stop.stopName
-              bindTextOrNull statement 4 stop.stopDesc
-              bindTextOrNull statement 5 stop.platformCode
-              bindTextOrNull statement 6 stop.platformName
-              Sqlite.bindDouble statement 7 stop.stopLat
-              Sqlite.bindDouble statement 8 stop.stopLon
-              bindTextOrNull statement 9 stop.zoneId
-              bindTextOrNull statement 10 stop.stopAddress
-              bindTextOrNull statement 11 stop.stopUrl
-              bindTextOrNull statement 12 stop.levelId
-              Sqlite.bindInt statement 13 stop.locationType
-              bindTextOrNull statement 14 stop.parentStation
-              Sqlite.bindInt statement 15 stop.wheelchairBoarding
-              bindTextOrNull statement 16 stop.municipality
-              bindTextOrNull statement 17 stop.onStreet
-              bindTextOrNull statement 18 stop.atStreet
-              Sqlite.bindInt statement 19 stop.vehicleType
-              _ <- Sqlite.stepNoCB statement
-              Sqlite.reset statement
-              Sqlite.clearBindings statement
+      let md5 = Md5.hashlazy bytes
+      storedMd5 <-
+        Sqlite.withStatement database "SELECT md5 FROM stops_md5" \statement -> do
+          Sqlite.stepNoCB statement >>= \case
+            Sqlite.Row -> Just <$> Sqlite.columnBlob statement 0
+            Sqlite.Done -> pure Nothing
 
-    step "Insert MBTA_GTFS/trips.txt into mbta_gtfs.sqlite?" do
+      if Just md5 == storedMd5
+        then Text.putStrLn "stops table in mbta_gtfs.sqlite is up-to-date with MBTA_GTFS/stops.txt"
+        else do
+          Text.putStrLn "stops table in mbta_gtfs.sqlite is not up-to-date with MBTA_GTFS/stops.txt"
+          step "Insert MBTA_GTFS/stops.txt into mbta_gtfs.sqlite?" do
+            case Cassava.decodeByName @StopsRow bytes of
+              Left err -> error ("bad header: " ++ err)
+              Right (_header, records) -> do
+                Sqlite.withStatement database "DELETE FROM stops" \statement -> do
+                  _ <- Sqlite.stepNoCB statement
+                  pure ()
+                Sqlite.withStatement database "INSERT INTO stops VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" \statement ->
+                  forRecords records \stop -> do
+                    bindTextOrNull statement 1 stop.stopId
+                    bindTextOrNull statement 2 stop.stopCode
+                    bindTextOrNull statement 3 stop.stopName
+                    bindTextOrNull statement 4 stop.stopDesc
+                    bindTextOrNull statement 5 stop.platformCode
+                    bindTextOrNull statement 6 stop.platformName
+                    Sqlite.bindDouble statement 7 stop.stopLat
+                    Sqlite.bindDouble statement 8 stop.stopLon
+                    bindTextOrNull statement 9 stop.zoneId
+                    bindTextOrNull statement 10 stop.stopAddress
+                    bindTextOrNull statement 11 stop.stopUrl
+                    bindTextOrNull statement 12 stop.levelId
+                    Sqlite.bindInt statement 13 stop.locationType
+                    bindTextOrNull statement 14 stop.parentStation
+                    Sqlite.bindInt statement 15 stop.wheelchairBoarding
+                    bindTextOrNull statement 16 stop.municipality
+                    bindTextOrNull statement 17 stop.onStreet
+                    bindTextOrNull statement 18 stop.atStreet
+                    Sqlite.bindInt statement 19 stop.vehicleType
+                    _ <- Sqlite.stepNoCB statement
+                    Sqlite.reset statement
+                    Sqlite.clearBindings statement
+                case storedMd5 of
+                  Just _ ->
+                    Sqlite.withStatement database "UPDATE stops_md5 SET md5 = ?" \statement -> do
+                      Sqlite.bindBlob statement 1 md5
+                      _ <- Sqlite.stepNoCB statement
+                      pure ()
+                  Nothing -> do
+                    Sqlite.withStatement database "INSERT INTO stops_md5 VALUES (?)" \statement -> do
+                      Sqlite.bindBlob statement 1 md5
+                      _ <- Sqlite.stepNoCB statement
+                      pure ()
+
+    do
       bytes <- LazyByteString.readFile "MBTA_GTFS/trips.txt"
-      case Cassava.decodeByName @TripsRow bytes of
-        Left err -> error ("bad header: " ++ err)
-        Right (_header, records) -> do
-          Sqlite.withStatement database "DELETE FROM trips" \statement -> do
-            _ <- Sqlite.stepNoCB statement
-            pure ()
-          Sqlite.withStatement database "INSERT INTO trips VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" \statement ->
-            forRecords records \trip -> do
-              bindTextOrNull statement 1 trip.routeId
-              bindTextOrNull statement 2 trip.serviceId
-              bindTextOrNull statement 3 trip.tripId
-              bindTextOrNull statement 4 trip.tripHeadsign
-              bindTextOrNull statement 5 trip.tripShortName
-              Sqlite.bindInt statement 6 trip.directionId
-              bindTextOrNull statement 7 trip.blockId
-              bindTextOrNull statement 8 trip.shapeId
-              Sqlite.bindInt statement 9 trip.wheelchairAccessible
-              bindMaybeInt statement 10 trip.tripRouteType
-              bindTextOrNull statement 11 trip.routePatternId
-              Sqlite.bindInt statement 12 trip.bikesAllowed
-              _ <- Sqlite.stepNoCB statement
-              Sqlite.reset statement
-              Sqlite.clearBindings statement
+      let md5 = Md5.hashlazy bytes
+      storedMd5 <-
+        Sqlite.withStatement database "SELECT md5 FROM trips_md5" \statement -> do
+          Sqlite.stepNoCB statement >>= \case
+            Sqlite.Row -> Just <$> Sqlite.columnBlob statement 0
+            Sqlite.Done -> pure Nothing
+
+      if Just md5 == storedMd5
+        then Text.putStrLn "trips table in mbta_gtfs.sqlite is up-to-date with MBTA_GTFS/trips.txt"
+        else do
+          Text.putStrLn "trips table in mbta_gtfs.sqlite is not up-to-date with MBTA_GTFS/trips.txt"
+          step "Insert MBTA_GTFS/trips.txt into mbta_gtfs.sqlite?" do
+            case Cassava.decodeByName @TripsRow bytes of
+              Left err -> error ("bad header: " ++ err)
+              Right (_header, records) -> do
+                Sqlite.withStatement database "DELETE FROM trips" \statement -> do
+                  _ <- Sqlite.stepNoCB statement
+                  pure ()
+                Sqlite.withStatement database "INSERT INTO trips VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" \statement ->
+                  forRecords records \trip -> do
+                    bindTextOrNull statement 1 trip.routeId
+                    bindTextOrNull statement 2 trip.serviceId
+                    bindTextOrNull statement 3 trip.tripId
+                    bindTextOrNull statement 4 trip.tripHeadsign
+                    bindTextOrNull statement 5 trip.tripShortName
+                    Sqlite.bindInt statement 6 trip.directionId
+                    bindTextOrNull statement 7 trip.blockId
+                    bindTextOrNull statement 8 trip.shapeId
+                    Sqlite.bindInt statement 9 trip.wheelchairAccessible
+                    bindMaybeInt statement 10 trip.tripRouteType
+                    bindTextOrNull statement 11 trip.routePatternId
+                    Sqlite.bindInt statement 12 trip.bikesAllowed
+                    _ <- Sqlite.stepNoCB statement
+                    Sqlite.reset statement
+                    Sqlite.clearBindings statement
+                case storedMd5 of
+                  Just _ ->
+                    Sqlite.withStatement database "UPDATE trips_md5 SET md5 = ?" \statement -> do
+                      Sqlite.bindBlob statement 1 md5
+                      _ <- Sqlite.stepNoCB statement
+                      pure ()
+                  Nothing -> do
+                    Sqlite.withStatement database "INSERT INTO trips_md5 VALUES (?)" \statement -> do
+                      Sqlite.bindBlob statement 1 md5
+                      _ <- Sqlite.stepNoCB statement
+                      pure ()
 
 forRecords :: Cassava.Records a -> (a -> IO ()) -> IO ()
 forRecords records0 f =

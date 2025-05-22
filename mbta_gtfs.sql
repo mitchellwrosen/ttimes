@@ -1,3 +1,13 @@
+CREATE TABLE IF NOT EXISTS connecting_stops (
+  stop_id TEXT NOT NULL,
+  connecting_stop_id TEXT NOT NULL,
+  PRIMARY KEY (stop_id, connecting_stop_id)
+) WITHOUT ROWID;
+
+CREATE TABLE IF NOT EXISTS connecting_stops_md5 (
+  md5 BLOB NOT NULL PRIMARY KEY
+) WITHOUT ROWID;
+
 CREATE TABLE IF NOT EXISTS routes (
   route_id TEXT NOT NULL PRIMARY KEY,
   agency_id INTEGER NOT NULL,
@@ -15,6 +25,10 @@ CREATE TABLE IF NOT EXISTS routes (
   network_id TEXT NOT NULL
 ) WITHOUT ROWID;
 
+CREATE TABLE IF NOT EXISTS routes_md5 (
+  md5 BLOB NOT NULL PRIMARY KEY
+) WITHOUT ROWID;
+
 CREATE TABLE IF NOT EXISTS stop_times (
   trip_id TEXT NOT NULL,
   arrival_time TEXT NOT NULL,
@@ -29,6 +43,10 @@ CREATE TABLE IF NOT EXISTS stop_times (
   continuous_pickup INTEGER,
   continuous_drop_off INTEGER,
   PRIMARY KEY (trip_id, stop_sequence)
+) WITHOUT ROWID;
+
+CREATE TABLE IF NOT EXISTS stop_times_md5 (
+  md5 BLOB NOT NULL PRIMARY KEY
 ) WITHOUT ROWID;
 
 CREATE TABLE IF NOT EXISTS stops (
@@ -53,6 +71,10 @@ CREATE TABLE IF NOT EXISTS stops (
   vehicle_type INTEGER NOT NULL
 ) WITHOUT ROWID;
 
+CREATE TABLE IF NOT EXISTS stops_md5 (
+  md5 BLOB NOT NULL PRIMARY KEY
+) WITHOUT ROWID;
+
 CREATE TABLE IF NOT EXISTS trips (
   route_id TEXT NOT NULL,
   service_id TEXT NOT NULL,
@@ -66,4 +88,8 @@ CREATE TABLE IF NOT EXISTS trips (
   trip_route_type INTEGER,
   route_pattern_id TEXT NOT NULL,
   bikes_allowed INTEGER NOT NULL
+) WITHOUT ROWID;
+
+CREATE TABLE IF NOT EXISTS trips_md5 (
+  md5 BLOB NOT NULL PRIMARY KEY
 ) WITHOUT ROWID;
