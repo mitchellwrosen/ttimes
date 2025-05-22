@@ -90,6 +90,38 @@ instance Cassava.FromNamedRecord StopsRow where
       <*> Cassava.lookup record "at_street"
       <*> Cassava.lookup record "vehicle_type"
 
+data TripsRow
+  = TripsRow
+  { routeId :: !Text,
+    serviceId :: !Text,
+    tripId :: !Text,
+    tripHeadsign :: !Text,
+    tripShortName :: !Text,
+    directionId :: !Int,
+    blockId :: !Text,
+    shapeId :: !Text,
+    wheelchairAccessible :: !Int,
+    tripRouteType :: !(Maybe Int),
+    routePatternId :: !Text,
+    bikesAllowed :: !Int
+  }
+
+instance Cassava.FromNamedRecord TripsRow where
+  parseNamedRecord record =
+    TripsRow
+      <$> Cassava.lookup record "route_id"
+      <*> Cassava.lookup record "service_id"
+      <*> Cassava.lookup record "trip_id"
+      <*> Cassava.lookup record "trip_headsign"
+      <*> Cassava.lookup record "trip_short_name"
+      <*> Cassava.lookup record "direction_id"
+      <*> Cassava.lookup record "block_id"
+      <*> Cassava.lookup record "shape_id"
+      <*> Cassava.lookup record "wheelchair_accessible"
+      <*> Cassava.lookup record "trip_route_type"
+      <*> Cassava.lookup record "route_pattern_id"
+      <*> Cassava.lookup record "bikes_allowed"
+
 main :: IO ()
 main = do
   let step description action = do
@@ -155,6 +187,32 @@ main = do
               bindTextOrNull statement 17 stop.onStreet
               bindTextOrNull statement 18 stop.atStreet
               Sqlite.bindInt statement 19 stop.vehicleType
+              _ <- Sqlite.stepNoCB statement
+              Sqlite.reset statement
+              Sqlite.clearBindings statement
+
+    step "Insert MBTA_GTFS/trips.txt into mbta_gtfs.sqlite?" do
+      bytes <- LazyByteString.readFile "MBTA_GTFS/trips.txt"
+      case Cassava.decodeByName @TripsRow bytes of
+        Left err -> error ("bad header: " ++ err)
+        Right (_header, records) -> do
+          Sqlite.withStatement database "DELETE FROM trips" \statement -> do
+            _ <- Sqlite.stepNoCB statement
+            pure ()
+          Sqlite.withStatement database "INSERT INTO trips VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" \statement ->
+            forRecords records \trip -> do
+              bindTextOrNull statement 1 trip.routeId
+              bindTextOrNull statement 2 trip.serviceId
+              bindTextOrNull statement 3 trip.tripId
+              bindTextOrNull statement 4 trip.tripHeadsign
+              bindTextOrNull statement 5 trip.tripShortName
+              Sqlite.bindInt statement 6 trip.directionId
+              bindTextOrNull statement 7 trip.blockId
+              bindTextOrNull statement 8 trip.shapeId
+              Sqlite.bindInt statement 9 trip.wheelchairAccessible
+              bindMaybeInt statement 10 trip.tripRouteType
+              bindTextOrNull statement 11 trip.routePatternId
+              Sqlite.bindInt statement 12 trip.bikesAllowed
               _ <- Sqlite.stepNoCB statement
               Sqlite.reset statement
               Sqlite.clearBindings statement

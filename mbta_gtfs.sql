@@ -36,3 +36,18 @@ CREATE TABLE IF NOT EXISTS stops (
   at_street TEXT,
   vehicle_type INTEGER NOT NULL
 ) WITHOUT ROWID;
+
+CREATE TABLE IF NOT EXISTS trips (
+  route_id TEXT NOT NULL,
+  service_id TEXT NOT NULL,
+  trip_id TEXT NOT NULL PRIMARY KEY,
+  trip_headsign TEXT NOT NULL,
+  trip_short_name TEXT,
+  direction_id INTEGER NOT NULL,
+  block_id TEXT,
+  shape_id TEXT NOT NULL,
+  wheelchair_accessible INTEGER NOT NULL,
+  trip_route_type INTEGER,
+  route_pattern_id TEXT NOT NULL,
+  bikes_allowed INTEGER NOT NULL
+) WITHOUT ROWID;
