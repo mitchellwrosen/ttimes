@@ -28,6 +28,7 @@ executable gtfs2sqlite
     text,
   default-extensions:
     BlockArguments
+    OverloadedRecordDot
     OverloadedStrings
   default-language: GHC2024
   ghc-options: -Wall

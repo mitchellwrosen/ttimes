@@ -1,6 +1,21 @@
-DROP TABLE IF EXISTS stops;
+CREATE TABLE IF NOT EXISTS routes (
+  route_id TEXT NOT NULL PRIMARY KEY,
+  agency_id INTEGER NOT NULL,
+  route_short_name TEXT,
+  route_long_name TEXT,
+  route_desc TEXT NOT NULL,
+  route_type INTEGER NOT NULL,
+  route_url TEXT,
+  route_color TEXT NOT NULL,
+  route_text_color TEXT NOT NULL,
+  route_sort_order INTEGER NOT NULL,
+  route_fare_class TEXT NOT NULL,
+  line_id TEXT,
+  listed_route INTEGER,
+  network_id TEXT NOT NULL
+) WITHOUT ROWID;
 
-CREATE TABLE stops (
+CREATE TABLE IF NOT EXISTS stops (
   stop_id TEXT NOT NULL PRIMARY KEY,
   stop_code TEXT,
   stop_name TEXT NOT NULL,
