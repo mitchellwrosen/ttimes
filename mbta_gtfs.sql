@@ -45,6 +45,9 @@ CREATE TABLE IF NOT EXISTS stop_times (
   PRIMARY KEY (trip_id, stop_sequence)
 ) WITHOUT ROWID;
 
+CREATE INDEX stop_times_stop_id_index
+  ON stop_times (stop_id);
+
 CREATE TABLE IF NOT EXISTS stop_times_md5 (
   md5 BLOB NOT NULL PRIMARY KEY
 ) WITHOUT ROWID;

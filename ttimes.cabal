@@ -22,6 +22,7 @@ executable ttimes
 executable gtfs2sqlite
   build-depends:
     aeson,
+    aeson-pretty,
     base,
     bytestring,
     cassava,
@@ -29,12 +30,14 @@ executable gtfs2sqlite
     cretheus,
     cryptohash-md5,
     direct-sqlite,
+    neat-interpolation,
     text,
   default-extensions:
     BlockArguments
     DuplicateRecordFields
     OverloadedRecordDot
     OverloadedStrings
+    QuasiQuotes
   default-language: GHC2024
   ghc-options: -Wall
   main-is: GtfsToSqlite.hs
