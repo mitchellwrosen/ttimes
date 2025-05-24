@@ -1,3 +1,4 @@
+import Control.Arrow ((>>>))
 import Control.Monad (when)
 import Cretheus.Decode qualified
 import Cretheus.Decode qualified as Cretheus (Decoder)
@@ -10,16 +11,23 @@ import Data.Aeson.Key qualified as Aeson.Key
 import Data.ByteString.Lazy qualified as LazyByteString
 import Data.Csv qualified as Cassava (FromNamedRecord (..), NamedRecord, Parser, lookup)
 import Data.Csv.Streaming qualified as Cassava
-import Data.Foldable (for_)
+import Data.Foldable (fold, for_)
 import Data.Int (Int64)
+import Data.List qualified as List
 import Data.Map.Merge.Strict qualified as Map
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
+import Data.Set (Set)
+import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.IO.Utf8 qualified as Text
 import Database.SQLite3 qualified as Sqlite
 import NeatInterpolation qualified
+
+type RouteId = Text
+
+type StopId = Text
 
 main :: IO ()
 main = do
@@ -448,41 +456,145 @@ processTrips database = do
 
 processStopConnectingRoutes :: Sqlite.Database -> IO ()
 processStopConnectingRoutes database = do
-  let drawRows :: Sqlite.Statement -> IO (Map Text [(Text, Text, Int)])
-      drawRows statement =
-        let loop acc =
-              Sqlite.stepNoCB statement >>= \case
-                Sqlite.Row -> do
-                  stopId <- Sqlite.columnText statement 0
-                  routeId <- Sqlite.columnText statement 1
-                  routeShortName <-
-                    Sqlite.columnType statement 2 >>= \case
-                      Sqlite.NullColumn -> pure ""
-                      _ -> Sqlite.columnText statement 2
-                  routeType <- Sqlite.columnInt64 statement 3
-                  loop $!
-                    Map.alter
-                      ( let value = (routeId, routeShortName, fromIntegral @Int64 @Int routeType)
-                         in \case
-                              Nothing -> Just [value]
-                              Just values -> Just (value : values)
-                      )
-                      stopId
-                      acc
-                Sqlite.Done -> pure acc
-         in loop Map.empty
+  allStopIds :: Set StopId <-
+    Sqlite.withStatement database "SELECT stop_id FROM stops" \statement ->
+      let loop stopIds =
+            Sqlite.stepNoCB statement >>= \case
+              Sqlite.Done -> pure stopIds
+              Sqlite.Row -> do
+                stopId <- Sqlite.columnText statement 0
+                loop $! Set.insert stopId stopIds
+       in loop Set.empty
 
-  stopRoutes0 <- Sqlite.withStatement database stopRoutesQuery drawRows
-  stopConnectingRoutes0 <- Sqlite.withStatement database stopConnectingRoutesQuery drawRows
+  stopDirectRoutes :: Map StopId (Map RouteId (Text, Int, Int)) <-
+    Sqlite.withStatement database stopRoutesQuery \statement -> do
+      let loop acc =
+            Sqlite.stepNoCB statement >>= \case
+              Sqlite.Done -> pure acc
+              Sqlite.Row -> do
+                stopId <- Sqlite.columnText statement 0
+                routeId <- Sqlite.columnText statement 1
+                routeShortName <-
+                  Sqlite.columnType statement 2 >>= \case
+                    Sqlite.NullColumn -> pure ""
+                    _ -> Sqlite.columnText statement 2
+                routeType <- Sqlite.columnInt64 statement 3
+                routeSortOrder <- Sqlite.columnInt64 statement 4
+                loop $!
+                  Map.alter
+                    ( let value =
+                            ( routeShortName,
+                              fromIntegral @Int64 @Int routeType,
+                              fromIntegral @Int64 @Int routeSortOrder
+                            )
+                       in Just . \case
+                            Nothing -> Map.singleton routeId value
+                            Just values -> Map.insert routeId value values
+                    )
+                    stopId
+                    acc
+       in loop Map.empty
+
+  stopParents :: Map StopId StopId <-
+    Sqlite.withStatement database "SELECT stop_id, parent_station FROM stops WHERE parent_station IS NOT NULL" \statement ->
+      let loop acc =
+            Sqlite.stepNoCB statement >>= \case
+              Sqlite.Done -> pure acc
+              Sqlite.Row -> do
+                stopId <- Sqlite.columnText statement 0
+                parentStopId <- Sqlite.columnText statement 1
+                loop $! Map.insert stopId parentStopId acc
+       in loop Map.empty
+
+  stopChildren :: Map StopId (Set StopId) <-
+    Sqlite.withStatement database "SELECT parent_stop_id, child_stop_id FROM stop_children_view" \statement ->
+      let loop acc =
+            Sqlite.stepNoCB statement >>= \case
+              Sqlite.Done -> pure acc
+              Sqlite.Row -> do
+                parentStopId <- Sqlite.columnText statement 0
+                childStopId <- Sqlite.columnText statement 1
+                loop $!
+                  Map.alter
+                    ( Just . \case
+                        Nothing -> Set.singleton childStopId
+                        Just childrenStopIds -> Set.insert childStopId childrenStopIds
+                    )
+                    parentStopId
+                    acc
+       in loop Map.empty
+
+  stopDirectConnectingStops :: Map StopId (Set StopId) <-
+    Sqlite.withStatement database "SELECT stop_id, connecting_stop_id FROM connecting_stops" \statement ->
+      let loop acc =
+            Sqlite.stepNoCB statement >>= \case
+              Sqlite.Done -> pure acc
+              Sqlite.Row -> do
+                stopId <- Sqlite.columnText statement 0
+                connectingStopId <- Sqlite.columnText statement 1
+                loop $!
+                  Map.alter
+                    (Just . maybe (Set.singleton connectingStopId) (Set.insert connectingStopId))
+                    stopId
+                    acc
+       in loop Map.empty
+
+  let stopGraph :: Map StopId (Set StopId)
+      stopGraph =
+        Map.unionWith
+          Set.union
+          stopDirectConnectingStops
+          ( Map.unionWith
+              Set.union
+              (Map.map Set.singleton stopParents)
+              stopChildren
+          )
+
+  let adjacent stopId = Map.findWithDefault Set.empty stopId stopGraph
+
+  let reachable stopId =
+        let loop acc frontier =
+              case Set.minView frontier of
+                Just (otherStopId, frontier1) ->
+                  if Set.member otherStopId acc
+                    then loop acc frontier1
+                    else loop (Set.insert otherStopId acc) (Set.union (adjacent otherStopId) frontier1)
+                Nothing -> acc
+         in loop Set.empty (adjacent stopId)
+
+  -- We say a stop's routes are the routes that directly pass through it or any of its children
+  let theStopRoutes :: Map StopId (Map RouteId (Text, Int, Int))
+      theStopRoutes =
+        Map.mapWithKey
+          ( \stopId ->
+              Map.union (maybe Map.empty (fold . Map.restrictKeys stopDirectRoutes) (Map.lookup stopId stopChildren))
+          )
+          stopDirectRoutes
+
+  let theStopConnectingRoutes :: Map StopId (Map RouteId (Text, Int, Int))
+      theStopConnectingRoutes =
+        Map.fromSet
+          ( \stopId ->
+              fold (Map.restrictKeys theStopRoutes (reachable stopId))
+                `Map.difference` Map.findWithDefault Map.empty stopId theStopRoutes
+          )
+          allStopIds
+
+  let sortRoutes :: Map RouteId (Text, Int, Int) -> [(RouteId, Text, Int)]
+      sortRoutes =
+        Map.toList
+          -- I think `routeSortOrder` is probably a unique sorting key, but add backup sort keys just in case
+          >>> List.sortOn (\(routeId, (routeShortName, _, routeSortOrder)) -> (routeSortOrder, routeShortName, routeId))
+          >>> map (\(routeId, (routeShortName, routeType, _)) -> (routeId, routeShortName, routeType))
 
   let stopRoutesAndConnectingRoutes :: Map Text ([(Text, Text, Int)], [(Text, Text, Int)])
       stopRoutesAndConnectingRoutes =
         Map.merge
-          (Map.mapMissing \_ -> (,[]))
-          (Map.mapMissing \_ -> ([],))
-          (Map.zipWithMatched \_ -> (,))
-          stopRoutes0
-          stopConnectingRoutes0
+          (Map.mapMissing \_ routes -> (sortRoutes routes, []))
+          (Map.mapMissing \_ connectingRoutes -> ([], sortRoutes connectingRoutes))
+          (Map.zipWithMatched \_ routes connectingRoutes -> (sortRoutes routes, sortRoutes connectingRoutes))
+          theStopRoutes
+          theStopConnectingRoutes
 
   let value =
         Cretheus.Encode.asValue $
@@ -520,55 +632,9 @@ processStopConnectingRoutes database = do
 stopRoutesQuery :: Text
 stopRoutesQuery =
   [NeatInterpolation.text|
-    WITH child_stops AS (
-      SELECT stops1.stop_id, COALESCE(stops2.stop_id, stops1.stop_id) child_stop_id
-      FROM stops stops1
-        LEFT JOIN stops stops2 ON stops1.stop_id = stops2.parent_station
-    ),
-    stop_routes AS (
-      SELECT DISTINCT child_stops.stop_id, trips.route_id
-      FROM child_stops
-        JOIN stop_times ON child_stops.child_stop_id = stop_times.stop_id
-        JOIN trips ON stop_times.trip_id = trips.trip_id
-        JOIN routes ON trips.route_id = routes.route_id
-      WHERE routes.listed_route IS NULL
-        OR routes.listed_route != 1
-    )
-    SELECT stop_routes.stop_id, stop_routes.route_id, routes.route_short_name, routes.route_type
-    FROM stop_routes
-      JOIN routes ON stop_routes.route_id = routes.route_id
-    ORDER BY stop_routes.stop_id, routes.route_sort_order
-  |]
-
-stopConnectingRoutesQuery :: Text
-stopConnectingRoutesQuery =
-  [NeatInterpolation.text|
-    WITH stop_routes AS (
-      SELECT DISTINCT stop_times.stop_id, trips.route_id
-      FROM stop_times
-        JOIN trips ON stop_times.trip_id = trips.trip_id
-        JOIN routes ON trips.route_id = routes.route_id
-      WHERE routes.listed_route IS NULL
-        OR routes.listed_route != 1
-    ),
-    child_stops AS (
-      SELECT stops1.stop_id, COALESCE(stops2.stop_id, stops1.stop_id) child_stop_id
-      FROM stops stops1
-        LEFT JOIN stops stops2 ON stops1.stop_id = stops2.parent_station
-    ),
-    stop_connecting_routes AS (
-      SELECT DISTINCT connecting_stops.stop_id, stop_routes.route_id
-      FROM connecting_stops
-        JOIN child_stops ON connecting_stops.connecting_stop_id = child_stops.stop_id
-        JOIN stop_routes ON child_stops.child_stop_id = stop_routes.stop_id
-      EXCEPT
-      SELECT stop_id, route_id
-      FROM stop_routes
-    )
-    SELECT stop_connecting_routes.stop_id, stop_connecting_routes.route_id
-    FROM stop_connecting_routes
-      JOIN routes ON stop_connecting_routes.route_id = routes.route_id
-    ORDER BY stop_connecting_routes.stop_id, routes.route_sort_order
+    SELECT stop_routes_view.stop_id, routes.route_id, routes.route_short_name, routes.route_type, routes.route_sort_order
+    FROM stop_routes_view
+      JOIN routes ON stop_routes_view.route_id = routes.route_id
   |]
 
 ------------------------------------------------------------------------------------------------------------------------

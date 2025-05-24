@@ -100,3 +100,16 @@ CREATE TABLE IF NOT EXISTS trips (
 CREATE TABLE IF NOT EXISTS trips_md5 (
   md5 BLOB NOT NULL PRIMARY KEY
 ) WITHOUT ROWID;
+
+CREATE VIEW IF NOT EXISTS stop_routes_view AS
+  SELECT DISTINCT stop_times.stop_id, trips.route_id
+  FROM stop_times
+    JOIN trips ON stop_times.trip_id = trips.trip_id
+    JOIN routes ON trips.route_id = routes.route_id
+  WHERE routes.listed_route IS NULL
+    OR routes.listed_route != 1;
+
+CREATE VIEW IF NOT EXISTS stop_children_view AS
+  SELECT parent_stop.stop_id parent_stop_id, child_stop.stop_id child_stop_id
+  FROM stops parent_stop
+    JOIN stops child_stop ON parent_stop.stop_id = child_stop.parent_station;
