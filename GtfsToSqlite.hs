@@ -691,36 +691,37 @@ processStopConnectingRoutes database = do
           Text.putStrLn err
           exitFailure
 
-  LazyByteString.writeFile
-    stopConnectingRoutesFilename
-    (encodeStopRoutesAndConnectingRoutes stopRoutesAndConnectingRoutes)
-  Text.putStrLn ("Wrote " <> Text.pack stopConnectingRoutesFilename)
+  when (Just stopRoutesAndConnectingRoutes /= maybeOldStopRoutesAndConnectingRoutes) do
+    LazyByteString.writeFile
+      stopConnectingRoutesFilename
+      (encodeStopRoutesAndConnectingRoutes stopRoutesAndConnectingRoutes)
+    Text.putStrLn ("Wrote " <> Text.pack stopConnectingRoutesFilename)
 
-  case maybeOldStopRoutesAndConnectingRoutes of
-    Nothing -> do
-      Directory.copyFile stopConnectingRoutesFilename changedStopConnectingRoutesFilename
-      Text.putStrLn ("Wrote " <> Text.pack changedStopConnectingRoutesFilename)
-    Just oldStopRoutesAndConnectingRoutes -> do
-      let changedStopRoutesAndConnectingRoutes =
-            Map.merge
-              Map.dropMissing
-              (Map.mapMissing (const id))
-              (Map.zipWithMaybeMatched \_ old new -> if old == new then Nothing else Just new)
-              oldStopRoutesAndConnectingRoutes
-              stopRoutesAndConnectingRoutes
-      when (not (Map.null changedStopRoutesAndConnectingRoutes)) do
-        LazyByteString.writeFile
-          changedStopConnectingRoutesFilename
-          (encodeStopRoutesAndConnectingRoutes changedStopRoutesAndConnectingRoutes)
+    case maybeOldStopRoutesAndConnectingRoutes of
+      Nothing -> do
+        Directory.copyFile stopConnectingRoutesFilename changedStopConnectingRoutesFilename
         Text.putStrLn ("Wrote " <> Text.pack changedStopConnectingRoutesFilename)
+      Just oldStopRoutesAndConnectingRoutes -> do
+        let changedStopRoutesAndConnectingRoutes =
+              Map.merge
+                Map.dropMissing
+                (Map.mapMissing (const id))
+                (Map.zipWithMaybeMatched \_ old new -> if old == new then Nothing else Just new)
+                oldStopRoutesAndConnectingRoutes
+                stopRoutesAndConnectingRoutes
+        when (not (Map.null changedStopRoutesAndConnectingRoutes)) do
+          LazyByteString.writeFile
+            changedStopConnectingRoutesFilename
+            (encodeStopRoutesAndConnectingRoutes changedStopRoutesAndConnectingRoutes)
+          Text.putStrLn ("Wrote " <> Text.pack changedStopConnectingRoutesFilename)
 
-      let deletedStopRoutesAndConnectingRoutes =
-            Map.difference oldStopRoutesAndConnectingRoutes stopRoutesAndConnectingRoutes
-      when (not (Map.null deletedStopRoutesAndConnectingRoutes)) do
-        LazyByteString.writeFile
-          deletedStopConnectingRoutesFilename
-          (encodeStopRoutesAndConnectingRoutes deletedStopRoutesAndConnectingRoutes)
-        Text.putStrLn ("Wrote " <> Text.pack deletedStopConnectingRoutesFilename)
+        let deletedStopRoutesAndConnectingRoutes =
+              Map.difference oldStopRoutesAndConnectingRoutes stopRoutesAndConnectingRoutes
+        when (not (Map.null deletedStopRoutesAndConnectingRoutes)) do
+          LazyByteString.writeFile
+            deletedStopConnectingRoutesFilename
+            (encodeStopRoutesAndConnectingRoutes deletedStopRoutesAndConnectingRoutes)
+          Text.putStrLn ("Wrote " <> Text.pack deletedStopConnectingRoutesFilename)
   where
     optionalListPropertyEncoder :: Aeson.Key -> (a -> Cretheus.Encoding) -> [a] -> Cretheus.PropertyEncoding
     optionalListPropertyEncoder name f xs =
