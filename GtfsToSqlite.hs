@@ -8,22 +8,33 @@ import Crypto.Hash.MD5 qualified as Md5
 import Data.Aeson qualified as Aeson
 import Data.Aeson.Encode.Pretty qualified as Aeson.Pretty
 import Data.Aeson.Key qualified as Aeson.Key
+import Data.ByteString qualified as ByteString
 import Data.ByteString.Lazy qualified as LazyByteString
 import Data.Csv qualified as Cassava (FromNamedRecord (..), NamedRecord, Parser, lookup)
 import Data.Csv.Streaming qualified as Cassava
 import Data.Foldable (fold, for_)
+import Data.Function ((&))
 import Data.Int (Int64)
 import Data.List qualified as List
 import Data.Map.Merge.Strict qualified as Map
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
+import Data.Maybe (fromMaybe)
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text qualified as Text
+import Data.Text.Encoding qualified as Text
 import Data.Text.IO.Utf8 qualified as Text
 import Database.SQLite3 qualified as Sqlite
 import NeatInterpolation qualified
+import Network.HTTP.Client qualified as Http
+import Network.HTTP.Client.TLS qualified as Http.Tls
+import Network.HTTP.Types qualified as Http
+import Network.HTTP.Types.Header qualified as Http
+import System.Directory qualified as Directory
+import System.Exit (exitFailure)
+import System.Process qualified as Process
 
 type RouteId = Text
 
@@ -32,12 +43,61 @@ type StopId = Text
 main :: IO ()
 main = do
   Sqlite.withDatabase "mbta_gtfs.sqlite" \database -> do
+    downloadMbtaGtfsZip database
     processConnectingStops database
     processRoutes database
     processStops database
     processStopTimes database
     processTrips database
     processStopConnectingRoutes database
+
+-----------------------------------------------------------------------------------------------------------------------
+-- MBTA_GTFS.zip
+
+downloadMbtaGtfsZip :: Sqlite.Database -> IO ()
+downloadMbtaGtfsZip database = do
+  storedEtag <-
+    Sqlite.withStatement database "SELECT etag FROM gtfs_zip_etag" \statement -> do
+      Sqlite.stepNoCB statement >>= \case
+        Sqlite.Row -> Just <$> Sqlite.columnText statement 0
+        Sqlite.Done -> pure Nothing
+  let request :: Http.Request
+      request =
+        Http.defaultRequest
+          { Http.host = Text.encodeUtf8 "cdn.mbta.com",
+            Http.method = Http.methodGet,
+            Http.path = Text.encodeUtf8 "/MBTA_GTFS.zip",
+            Http.port = 443,
+            Http.requestHeaders = [(Http.hIfNoneMatch, maybe ByteString.empty Text.encodeUtf8 storedEtag)],
+            Http.secure = True
+          }
+  httpManager <- Http.newManager Http.Tls.tlsManagerSettings
+  response <- Http.httpLbs request httpManager
+  case Http.statusCode (Http.responseStatus response) of
+    200 -> do
+      Text.putStrLn "MBTA_GTFS.zip is not up-to-date"
+      LazyByteString.writeFile "MBTA_GTFS.zip" (Http.responseBody response)
+      let etag =
+            case List.lookup Http.hETag (Http.responseHeaders response) of
+              Just bytes -> Text.decodeUtf8 bytes
+              Nothing -> Text.empty
+      case storedEtag of
+        Just _ ->
+          Sqlite.withStatement database "UPDATE gtfs_zip_etag SET etag = ?" \statement -> do
+            Sqlite.bindText statement 1 etag
+            _ <- Sqlite.stepNoCB statement
+            pure ()
+        Nothing -> do
+          Sqlite.withStatement database "INSERT INTO gtfs_zip_etag VALUES (?)" \statement -> do
+            Sqlite.bindText statement 1 etag
+            _ <- Sqlite.stepNoCB statement
+            pure ()
+      Process.callCommand "unzip -o MBTA_GTFS.zip -d MBTA_GTFS"
+    304 -> do
+      Text.putStrLn "MBTA_GTFS.zip is up-to-date"
+    code -> do
+      Text.putStrLn ("Unexpected response code: " <> Text.pack (show code))
+      exitFailure
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Connecting stops
@@ -596,22 +656,71 @@ processStopConnectingRoutes database = do
           theStopRoutes
           theStopConnectingRoutes
 
-  let value =
-        Cretheus.Encode.asValue $
-          Cretheus.Encode.map
-            Aeson.Key.fromText
-            ( \(routes, connectingRoutes) ->
-                Cretheus.Encode.object
-                  [ optionalListPropertyEncoder "routes" routeInfoEncoder routes,
-                    optionalListPropertyEncoder "connecting_routes" routeInfoEncoder connectingRoutes
-                  ]
-            )
-            stopRoutesAndConnectingRoutes
+  let encodeStopRoutesAndConnectingRoutes =
+        Aeson.Pretty.encodePretty . Cretheus.Encode.asValue . Cretheus.Encode.map Aeson.Key.fromText f
+        where
+          f (routes, connectingRoutes) =
+            Cretheus.Encode.object
+              [ optionalListPropertyEncoder "routes" routeInfoEncoder routes,
+                optionalListPropertyEncoder "connecting_routes" routeInfoEncoder connectingRoutes
+              ]
 
-  let filename = "data/stop-connecting-routes.json"
-  LazyByteString.writeFile filename (Aeson.Pretty.encodePretty value)
-  Text.putStrLn ("Wrote " <> Text.pack filename)
-  pure ()
+  let stopConnectingRoutesFilename = "data/stop-connecting-routes.json"
+  let changedStopConnectingRoutesFilename = "changed-stop-connecting-routes.json"
+  let deletedStopConnectingRoutesFilename = "deleted-stop-connecting-routes.json"
+
+  maybeOldStopRoutesAndConnectingRoutes <-
+    Directory.doesFileExist stopConnectingRoutesFilename >>= \case
+      False -> pure Nothing
+      True -> fmap Just do
+        bytes <- ByteString.readFile stopConnectingRoutesFilename
+        let decoder :: Cretheus.Decoder (Map Text ([(Text, Text, Int)], [(Text, Text, Int)]))
+            decoder =
+              Cretheus.Decode.map
+                Aeson.Key.toText
+                ( Cretheus.Decode.object $
+                    (,)
+                      <$> ( fromMaybe []
+                              <$> Cretheus.Decode.optionalProperty "routes" (Cretheus.Decode.list routeInfoDecoder)
+                          )
+                      <*> ( fromMaybe []
+                              <$> Cretheus.Decode.optionalProperty "connecting_routes" (Cretheus.Decode.list routeInfoDecoder)
+                          )
+                )
+        Cretheus.Decode.fromBytes decoder bytes & onLeft \err -> do
+          Text.putStrLn err
+          exitFailure
+
+  LazyByteString.writeFile
+    stopConnectingRoutesFilename
+    (encodeStopRoutesAndConnectingRoutes stopRoutesAndConnectingRoutes)
+  Text.putStrLn ("Wrote " <> Text.pack stopConnectingRoutesFilename)
+
+  case maybeOldStopRoutesAndConnectingRoutes of
+    Nothing -> do
+      Directory.copyFile stopConnectingRoutesFilename changedStopConnectingRoutesFilename
+      Text.putStrLn ("Wrote " <> Text.pack changedStopConnectingRoutesFilename)
+    Just oldStopRoutesAndConnectingRoutes -> do
+      let changedStopRoutesAndConnectingRoutes =
+            Map.merge
+              Map.dropMissing
+              (Map.mapMissing (const id))
+              (Map.zipWithMaybeMatched \_ old new -> if old == new then Nothing else Just new)
+              oldStopRoutesAndConnectingRoutes
+              stopRoutesAndConnectingRoutes
+      when (not (Map.null changedStopRoutesAndConnectingRoutes)) do
+        LazyByteString.writeFile
+          changedStopConnectingRoutesFilename
+          (encodeStopRoutesAndConnectingRoutes changedStopRoutesAndConnectingRoutes)
+        Text.putStrLn ("Wrote " <> Text.pack changedStopConnectingRoutesFilename)
+
+      let deletedStopRoutesAndConnectingRoutes =
+            Map.difference oldStopRoutesAndConnectingRoutes stopRoutesAndConnectingRoutes
+      when (not (Map.null deletedStopRoutesAndConnectingRoutes)) do
+        LazyByteString.writeFile
+          deletedStopConnectingRoutesFilename
+          (encodeStopRoutesAndConnectingRoutes deletedStopRoutesAndConnectingRoutes)
+        Text.putStrLn ("Wrote " <> Text.pack deletedStopConnectingRoutesFilename)
   where
     optionalListPropertyEncoder :: Aeson.Key -> (a -> Cretheus.Encoding) -> [a] -> Cretheus.PropertyEncoding
     optionalListPropertyEncoder name f xs =
@@ -629,6 +738,14 @@ processStopConnectingRoutes database = do
           Cretheus.Encode.property "type" (Cretheus.Encode.int type_)
         ]
 
+    routeInfoDecoder :: Cretheus.Decoder (Text, Text, Int)
+    routeInfoDecoder =
+      Cretheus.Decode.object $
+        (,,)
+          <$> Cretheus.Decode.property "id" Cretheus.Decode.text
+          <*> Cretheus.Decode.property "short_name" Cretheus.Decode.text
+          <*> Cretheus.Decode.property "type" Cretheus.Decode.int
+
 stopRoutesQuery :: Text
 stopRoutesQuery =
   [NeatInterpolation.text|
@@ -640,12 +757,15 @@ stopRoutesQuery =
 ------------------------------------------------------------------------------------------------------------------------
 -- Misc
 
+onLeft :: (Applicative m) => (a -> m b) -> Either a b -> m b
+onLeft f = \case
+  Left x -> f x
+  Right y -> pure y
+
 forRecords :: Cassava.Records a -> (a -> IO ()) -> IO ()
 forRecords records0 f =
   let loop n = \case
         Cassava.Cons (Right record) records1 -> do
-          when (mod n 1000 == 0) do
-            Text.putStrLn ("Processing record " <> Text.pack (show n))
           f record
           loop (n + 1) records1
         Cassava.Nil Nothing _ -> pure ()

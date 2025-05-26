@@ -1,5 +1,7 @@
-Session.vim
-dist-newstyle/
 MBTA_GTFS.zip
 MBTA_GTFS/
+Session.vim
+changed-stop-connecting-routes.json
+deleted-stop-connecting-routes.json
+dist-newstyle/
 mbta_gtfs.sqlite

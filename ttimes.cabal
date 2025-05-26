@@ -30,7 +30,12 @@ executable gtfs2sqlite
     cretheus,
     cryptohash-md5,
     direct-sqlite,
+    directory,
+    http-client,
+    http-client-tls,
+    http-types,
     neat-interpolation,
+    process,
     text,
   default-extensions:
     BlockArguments
