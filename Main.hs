@@ -662,7 +662,34 @@ computeStopConnectingRoutes database = do
                 loop $! Set.insert stopId stopIds
        in loop Set.empty
 
-  !stopDirectRoutes :: Map StopId (Map RouteId (Text, Int, Int)) <-
+  !stopGraph :: Map StopId (Set StopId) <-
+    Sqlite.withStatement database stopGraphQuery \statement ->
+      let loop !acc =
+            Sqlite.stepNoCB statement >>= \case
+              Sqlite.Done -> pure acc
+              Sqlite.Row -> do
+                stopId <- Sqlite.columnText statement 0
+                adjacentStopId <- Sqlite.columnText statement 1
+                loop $!
+                  Map.alter
+                    (Just . maybe (Set.singleton adjacentStopId) (Set.insert adjacentStopId))
+                    stopId
+                    acc
+       in loop Map.empty
+
+  let adjacent stopId = Map.findWithDefault Set.empty stopId stopGraph
+
+  let reachable stopId =
+        let loop acc frontier =
+              case Set.minView frontier of
+                Just (otherStopId, frontier1) ->
+                  if Set.member otherStopId acc
+                    then loop acc frontier1
+                    else loop (Set.insert otherStopId acc) (Set.union (adjacent otherStopId) frontier1)
+                Nothing -> acc
+         in loop Set.empty (adjacent stopId)
+
+  !theStopRoutes :: Map StopId (Map RouteId (Text, Int, Int)) <-
     Sqlite.withStatement database stopRoutesQuery \statement -> do
       let loop !acc =
             Sqlite.stepNoCB statement >>= \case
@@ -691,82 +718,6 @@ computeStopConnectingRoutes database = do
                     acc
        in loop Map.empty
 
-  !stopParents :: Map StopId StopId <-
-    Sqlite.withStatement database "SELECT stop_id, parent_station FROM stops WHERE parent_station IS NOT NULL" \statement ->
-      let loop !acc =
-            Sqlite.stepNoCB statement >>= \case
-              Sqlite.Done -> pure acc
-              Sqlite.Row -> do
-                stopId <- Sqlite.columnText statement 0
-                parentStopId <- Sqlite.columnText statement 1
-                loop $! Map.insert stopId parentStopId acc
-       in loop Map.empty
-
-  !stopChildren :: Map StopId (Set StopId) <-
-    Sqlite.withStatement database "SELECT parent_stop_id, child_stop_id FROM stop_children_view" \statement ->
-      let loop !acc =
-            Sqlite.stepNoCB statement >>= \case
-              Sqlite.Done -> pure acc
-              Sqlite.Row -> do
-                parentStopId <- Sqlite.columnText statement 0
-                childStopId <- Sqlite.columnText statement 1
-                loop $!
-                  Map.alter
-                    ( Just . \case
-                        Nothing -> Set.singleton childStopId
-                        Just childrenStopIds -> Set.insert childStopId childrenStopIds
-                    )
-                    parentStopId
-                    acc
-       in loop Map.empty
-
-  !stopDirectConnectingStops :: Map StopId (Set StopId) <-
-    Sqlite.withStatement database "SELECT stop_id, connecting_stop_id FROM connecting_stops" \statement ->
-      let loop !acc =
-            Sqlite.stepNoCB statement >>= \case
-              Sqlite.Done -> pure acc
-              Sqlite.Row -> do
-                stopId <- Sqlite.columnText statement 0
-                connectingStopId <- Sqlite.columnText statement 1
-                loop $!
-                  Map.alter
-                    (Just . maybe (Set.singleton connectingStopId) (Set.insert connectingStopId))
-                    stopId
-                    acc
-       in loop Map.empty
-
-  let stopGraph :: Map StopId (Set StopId)
-      !stopGraph =
-        Map.unionWith
-          Set.union
-          stopDirectConnectingStops
-          ( Map.unionWith
-              Set.union
-              (Map.map Set.singleton stopParents)
-              stopChildren
-          )
-
-  let adjacent stopId = Map.findWithDefault Set.empty stopId stopGraph
-
-  let reachable stopId =
-        let loop acc frontier =
-              case Set.minView frontier of
-                Just (otherStopId, frontier1) ->
-                  if Set.member otherStopId acc
-                    then loop acc frontier1
-                    else loop (Set.insert otherStopId acc) (Set.union (adjacent otherStopId) frontier1)
-                Nothing -> acc
-         in loop Set.empty (adjacent stopId)
-
-  -- We say a stop's routes are the routes that directly pass through it or any of its children
-  let theStopRoutes :: Map StopId (Map RouteId (Text, Int, Int))
-      !theStopRoutes =
-        Map.mapWithKey
-          ( \stopId ->
-              Map.union (maybe Map.empty (fold . Map.restrictKeys stopDirectRoutes) (Map.lookup stopId stopChildren))
-          )
-          stopDirectRoutes
-
   let theStopConnectingRoutes :: Map StopId (Map RouteId (Text, Int, Int))
       !theStopConnectingRoutes =
         Map.fromSet
@@ -791,12 +742,36 @@ computeStopConnectingRoutes database = do
       theStopRoutes
       theStopConnectingRoutes
 
+-- First relate a stop to all of its "effective stop ids" – itself and all of its children. We therefore say a stop's
+-- routes are the routes that directly pass through it or any of its children.
 stopRoutesQuery :: Text
 stopRoutesQuery =
   [NeatInterpolation.text|
-    SELECT stop_routes_view.stop_id, routes.route_id, routes.route_short_name, routes.route_type, routes.route_sort_order
-    FROM stop_routes_view
+    WITH effective_stops (stop_id, effective_stop_id) AS (
+      SELECT parent_stop_id, child_stop_id
+      FROM stop_children_view
+      UNION ALL
+      SELECT stop_id, stop_id
+      FROM stops
+    )
+    SELECT effective_stops.stop_id, routes.route_id, routes.route_short_name, routes.route_type, routes.route_sort_order
+    FROM effective_stops
+      JOIN stop_routes_view ON effective_stops.effective_stop_id = stop_routes_view.stop_id
       JOIN routes ON stop_routes_view.route_id = routes.route_id
+  |]
+
+stopGraphQuery :: Text
+stopGraphQuery =
+  [NeatInterpolation.text|
+    SELECT stop_id, parent_station
+    FROM stops
+    WHERE parent_station IS NOT NULL
+    UNION
+    SELECT parent_stop_id, child_stop_id
+    FROM stop_children_view
+    UNION
+    SELECT stop_id, connecting_stop_id
+    FROM connecting_stops
   |]
 
 ------------------------------------------------------------------------------------------------------------------------
