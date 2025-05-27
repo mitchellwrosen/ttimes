@@ -9,22 +9,6 @@ executable ttimes
     aeson-pretty,
     base,
     bytestring,
-    containers,
-    cretheus,
-    http-client,
-    http-client-tls,
-    http-types,
-    text,
-  default-language: GHC2024
-  ghc-options: -Wall
-  main-is: Main.hs
-
-executable gtfs2sqlite
-  build-depends:
-    aeson,
-    aeson-pretty,
-    base,
-    bytestring,
     cassava,
     containers,
     cretheus,
@@ -45,4 +29,4 @@ executable gtfs2sqlite
     QuasiQuotes
   default-language: GHC2024
   ghc-options: -Wall
-  main-is: GtfsToSqlite.hs
+  main-is: Main.hs

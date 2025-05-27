@@ -4,10 +4,6 @@ CREATE TABLE IF NOT EXISTS connecting_stops (
   PRIMARY KEY (stop_id, connecting_stop_id)
 ) WITHOUT ROWID;
 
-CREATE TABLE IF NOT EXISTS connecting_stops_md5 (
-  md5 BLOB NOT NULL PRIMARY KEY
-) WITHOUT ROWID;
-
 CREATE TABLE IF NOT EXISTS gtfs_zip_etag (
   etag TEXT NOT NULL PRIMARY KEY
 ) WITHOUT ROWID;
