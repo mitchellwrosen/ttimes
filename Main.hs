@@ -9,6 +9,7 @@ import Crypto.Hash.MD5 qualified as Md5
 import Data.Aeson qualified as Aeson
 import Data.Aeson.Encode.Pretty qualified as Aeson.Pretty
 import Data.Aeson.Key qualified as Aeson.Key
+import Data.Bits ((.&.), (.<<.), (.>>.), (.|.))
 import Data.ByteString qualified as ByteString
 import Data.ByteString.Builder qualified as ByteString.Builder
 import Data.ByteString.Lazy qualified as LazyByteString
@@ -381,7 +382,9 @@ processStops database = do
                 pure ()
 
     let stopCoordsFilename = "data/stop-coords.json"
-    time ("Wrote " <> stopCoordsFilename) do
+    let stopCoordsSnappedFilename = "data/stop-coords-snapped.json"
+
+    time ("Wrote " <> stopCoordsFilename <> " and " <> stopCoordsSnappedFilename) do
       let query =
             [NeatInterpolation.text|
               SELECT stop_id, stop_lat, stop_lon
@@ -398,19 +401,38 @@ processStops database = do
                   stopLon <- Sqlite.columnDouble statement 2
                   loop ((stopId, stopLat, stopLon) : acc)
                 Sqlite.Done -> pure (reverse acc)
+        let f filename =
+              Cretheus.Encode.list
+                ( \(stopId, stopLat, stopLon) ->
+                    Cretheus.Encode.object
+                      [ Cretheus.Encode.property "id" (Cretheus.Encode.text stopId),
+                        Cretheus.Encode.property "latitude" (Cretheus.Encode.double stopLat),
+                        Cretheus.Encode.property "longitude" (Cretheus.Encode.double stopLon)
+                      ]
+                )
+                >>> Cretheus.Encode.asValue
+                >>> Aeson.Pretty.encodePretty
+                >>> LazyByteString.writeFile (Text.unpack filename)
         stops <- loop []
         stops
-          & Cretheus.Encode.list
+          & f stopCoordsFilename
+        stops
+          & map
             ( \(stopId, stopLat, stopLon) ->
-                Cretheus.Encode.object
-                  [ Cretheus.Encode.property "id" (Cretheus.Encode.text stopId),
-                    Cretheus.Encode.property "latitude" (Cretheus.Encode.double stopLat),
-                    Cretheus.Encode.property "longitude" (Cretheus.Encode.double stopLon)
-                  ]
+                let (stopLat1, stopLon1) = ungeohash (geohash stopLat stopLon)
+                 in (stopId, stopLat1, stopLon1)
             )
-          & Cretheus.Encode.asValue
-          & Aeson.Pretty.encodePretty
-          & LazyByteString.writeFile (Text.unpack stopCoordsFilename)
+          & f stopCoordsSnappedFilename
+
+geohash :: Double -> Double -> Int
+geohash latitude longitude =
+  ((round ((latitude + 90) * 15876.0)) .<<. 23) .|. round ((longitude + 180) * 11798.167249279111)
+
+ungeohash :: Int -> (Double, Double)
+ungeohash n =
+  ( fromIntegral @Int @Double (n .>>. 23) * 6.298815822625347e-5 - 89.99996850592089,
+    fromIntegral @Int @Double (n .&. 8388607) * 8.475892728687176e-5 - 179.99995762053635
+  )
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Stop times
