@@ -380,6 +380,38 @@ processStops database = do
                 _ <- Sqlite.stepNoCB statement
                 pure ()
 
+    let stopCoordsFilename = "data/stop-coords.json"
+    time ("Wrote " <> stopCoordsFilename) do
+      let query =
+            [NeatInterpolation.text|
+              SELECT stop_id, stop_lat, stop_lon
+              FROM stops
+              WHERE stop_lat IS NOT NULL
+                AND stop_lon IS NOT NULL
+            |]
+      Sqlite.withStatement database query \statement -> do
+        let loop acc =
+              Sqlite.stepNoCB statement >>= \case
+                Sqlite.Row -> do
+                  stopId <- Sqlite.columnText statement 0
+                  stopLat <- Sqlite.columnDouble statement 1
+                  stopLon <- Sqlite.columnDouble statement 2
+                  loop ((stopId, stopLat, stopLon) : acc)
+                Sqlite.Done -> pure (reverse acc)
+        stops <- loop []
+        stops
+          & Cretheus.Encode.list
+            ( \(stopId, stopLat, stopLon) ->
+                Cretheus.Encode.object
+                  [ Cretheus.Encode.property "id" (Cretheus.Encode.text stopId),
+                    Cretheus.Encode.property "latitude" (Cretheus.Encode.double stopLat),
+                    Cretheus.Encode.property "longitude" (Cretheus.Encode.double stopLon)
+                  ]
+            )
+          & Cretheus.Encode.asValue
+          & Aeson.Pretty.encodePretty
+          & LazyByteString.writeFile (Text.unpack stopCoordsFilename)
+
 ------------------------------------------------------------------------------------------------------------------------
 -- Stop times
 
