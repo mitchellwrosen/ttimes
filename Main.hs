@@ -516,6 +516,29 @@ processStopTimes database = do
                 _ <- Sqlite.stepNoCB statement
                 pure ()
 
+    let allUniqueTripsFilename = "data/all-unique-trips.json"
+
+    time ("Wrote " <> allUniqueTripsFilename) do
+      let query =
+            [NeatInterpolation.text|
+              SELECT DISTINCT trip_id, stop_id
+              FROM stop_times
+            |]
+      Sqlite.withStatement database query \statement -> do
+        let loop !acc =
+              Sqlite.stepNoCB statement >>= \case
+                Sqlite.Row -> do
+                  tripId <- Sqlite.columnText statement 0
+                  stopId <- Sqlite.columnText statement 1
+                  loop (Map.alter (Just . maybe (Set.singleton stopId) (Set.insert stopId)) tripId acc)
+                Sqlite.Done -> pure acc
+        trips <- Set.fromList . Map.elems <$> loop Map.empty
+        trips
+          & Cretheus.Encode.set (Cretheus.Encode.set Cretheus.Encode.text)
+          & Cretheus.Encode.asValue
+          & Aeson.Pretty.encodePretty
+          & LazyByteString.writeFile (Text.unpack allUniqueTripsFilename)
+
 ------------------------------------------------------------------------------------------------------------------------
 -- Trips
 
