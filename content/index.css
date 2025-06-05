@@ -156,9 +156,6 @@ ol {
 .border-width-1-0 {border-width: 1px 0px}
 .border-width-1px {border-width: 1px}
 .box-shadow-0-0-4-0-cccccc {box-shadow: 0 0 4px 0 #cccccc}
-.col {display: flex; flex-direction: column}
-.col.center-x {align-items: center}
-.col.center-y {justify-content: center}
 .color-000000 {color: #000000}
 .color-444444 {color: #444444}
 .color-666666 {color: #666666}
@@ -169,6 +166,9 @@ ol {
 .cursor-pointer {cursor: pointer}
 .display-flex {display: flex}
 .flex-direction-column {flex-direction: column}
+.flex-grow-1 {flex-grow: 1}
+.flex-shrink-0 {flex-shrink: 0}
+.flex-wrap-wrap {flex-wrap: wrap}
 .font-size-1p1rem {font-size: 1.1rem}
 .font-size-1p2rem {font-size: 1.2rem}
 .font-size-p6rem {font-size: 0.6rem}
@@ -183,7 +183,6 @@ ol {
 .gap-m {gap: 0.35rem}
 .gap-s {gap: 0.25rem}
 .gap-xs {gap: 0.15rem}
-.grow {flex-grow: 1}
 .height-1em {height: 1em}
 .height-2em {height: 2em}
 .height-fill {height: 100%}
@@ -202,7 +201,6 @@ ol {
 .margin-m-m-m-0 {margin: 0.35rem 0.35rem 0.35rem 0}
 .margin-right-m {margin-right: 0.35rem}
 .margin-xxl-l {margin: 1.8rem 0.5rem}
-.no-shrink {flex-shrink: 0}
 .padding-0-xl {padding: 0 0.85rem}
 .padding-l {padding: 0.5rem}
 .padding-l-xl-xl-xl {padding: 0.5rem 0.85rem 0.85rem 0.85rem}
@@ -212,14 +210,10 @@ ol {
 .padding-xl-xl-l-xl {padding: 0.85rem 0.85rem 0.5rem 0.85rem}
 .padding-xs {padding: 0.15rem}
 .position-sticky {position: sticky}
-.row {display: flex}
-.row.center-x {justify-content: center}
-.row.center-y {align-items: center}
 .rs-best-trip {opacity: 100%; transition: display 60ms, opacity 60ms; transition-behavior: allow-discrete}
 .rs-route-pattern-extra {display: none; opacity: 0%; transform: translate(0rem, -1rem); transition: display 60ms, opacity 60ms, transform 60ms; transition-behavior: allow-discrete}
 .rs-trip-section .trip {border-color: #004ce1}
 .rs-trip-section {text-decoration: none}
-.stop-link {text-decoration: none}
 .t-connect {border-radius: 0.3rem; font-size: 0.7em; min-width: 3ch; padding: 0.1rem; text-align: center}
 .t-map {aspect-ratio: 1 / 1; height: auto; width: 100%}
 .text-align-center {text-align: center}
@@ -229,7 +223,5 @@ ol {
 .width-2em {width: 2em}
 .width-2p2em {width: 2.2em; }
 .width-fill {width: 100%}
-.wrap {flex-wrap: wrap}
 .z-index-999 {z-index: 999}
-@keyframes pulsating {0% {opacity: 100%} 50% {opacity: 25%}}
 @keyframes rotating {0% {transform: rotate(0deg)} 100% {transform: rotate(360deg)}}
