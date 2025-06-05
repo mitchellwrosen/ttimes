@@ -88,11 +88,6 @@ ol {
   color: #666666;
 }
 
-#refresh-icon {
-  display: none;
-  opacity: 0%;
-}
-
 #refresh-icon.clickable {
   display: flex;
   opacity: 100%;
@@ -101,13 +96,7 @@ ol {
 
 #refresh-icon.htmx-request {
   animation: 2s linear 0s infinite normal forwards running rotating;
-  display: flex;
-  opacity: 100%;
-  transition: opacity 200ms ease-out;
-}
-
-#refresh-icon.htmx-request {
-  animation: 2s linear 0s infinite normal forwards running rotating;
+  border-color: #ffffff;
   display: flex;
   opacity: 100%;
   transition: opacity 200ms ease-out;
@@ -165,16 +154,22 @@ ol {
 .connecting-routes-rparen {margin-left: -0.2rem}
 .cursor-pointer {cursor: pointer}
 .display-flex {display: flex}
+.display-none {display: none}
 .flex-direction-column {flex-direction: column}
 .flex-grow-1 {flex-grow: 1}
 .flex-shrink-0 {flex-shrink: 0}
 .flex-wrap-wrap {flex-wrap: wrap}
 .font-size-1p1rem {font-size: 1.1rem}
 .font-size-1p2rem {font-size: 1.2rem}
+.font-size-1rem {font-size: 1rem}
+.font-size-inherit {font-size: inherit}
 .font-size-p6rem {font-size: 0.6rem}
 .font-size-p7rem {font-size: 0.7rem}
 .font-size-p8rem {font-size: 0.8rem}
 .font-size-p9rem {font-size: 0.9rem}
+.font-variation-settings-fill-1 {font-variation-settings: "FILL" 1}
+.font-weight-300 {font-weight: 300}
+.font-weight-400 {font-weight: 400}
 .font-weight-500 {font-weight: 500}
 .font-weight-600 {font-weight: 600}
 .font-weight-700 {font-weight: 700}
@@ -186,7 +181,7 @@ ol {
 .height-1em {height: 1em}
 .height-2em {height: 2em}
 .height-fill {height: 100%}
-.id-rs-rp-section.expanded .rs-best-trip {opacity: 0%; display: none}
+.id-rs-rp-section.expanded .rs-best-trip {opacity: 0%; visibility: hidden}
 .id-rs-rp-section.expanded .rs-route-pattern-extra {display: flex; opacity: 100%; transform: translate(0); @starting-style {opacity: 0%; transform: translate(0rem, -1rem)}}
 .justify-content-center {justify-content: center}
 .justify-content-right {justify-content: right}
@@ -201,6 +196,7 @@ ol {
 .margin-m-m-m-0 {margin: 0.35rem 0.35rem 0.35rem 0}
 .margin-right-m {margin-right: 0.35rem}
 .margin-xxl-l {margin: 1.8rem 0.5rem}
+.opacity-0 {opacity: 0}
 .padding-0-xl {padding: 0 0.85rem}
 .padding-l {padding: 0.5rem}
 .padding-l-xl-xl-xl {padding: 0.5rem 0.85rem 0.85rem 0.85rem}
@@ -210,7 +206,7 @@ ol {
 .padding-xl-xl-l-xl {padding: 0.85rem 0.85rem 0.5rem 0.85rem}
 .padding-xs {padding: 0.15rem}
 .position-sticky {position: sticky}
-.rs-best-trip {opacity: 100%; transition: display 60ms, opacity 60ms; transition-behavior: allow-discrete}
+.rs-best-trip {opacity: 100%; transition: opacity 200ms, visibility 200ms; transition-behavior: allow-discrete}
 .rs-route-pattern-extra {display: none; opacity: 0%; transform: translate(0rem, -1rem); transition: display 60ms, opacity 60ms, transform 60ms; transition-behavior: allow-discrete}
 .rs-trip-section .trip {border-color: #004ce1}
 .rs-trip-section {text-decoration: none}

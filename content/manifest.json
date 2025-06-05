@@ -1,0 +1,43 @@
+{
+  "background_color": "#ffffff",
+  "categories": ["navigation", "travel", "utilities"],
+  "description": "T Times is a free, open source public transit dashboard for the MBTA network, covering Boston and serviced regions.",
+  "dir": "ltr",
+  "display": "standalone",
+  "icons": [
+    {
+      "sizes": "192x192",
+      "src": "/content/R3DuoOSGBi44BMcmkwbVu5vAUhbN0PYN_b9dt2xPL8A",
+      "type": "image/png"
+    },
+    {
+      "sizes": "512x512",
+      "src": "/content/v59GNdQakNs71GwGR-ZJjraSAXUjZVPpc68I5NhFJmQ",
+      "type": "image/png"
+    }
+  ],
+  "id": "https://ttimes.boston",
+  "lang": "en",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "name": "T Times",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "scope": "https://ttimes.boston",
+  "screenshots": [
+    {
+      "sizes": "1170x2760",
+      "src": "/static/screenshot1.png",
+      "type": "image/png"
+    },
+    {
+      "sizes": "1170x2616",
+      "src": "/static/screenshot2.png",
+      "type": "image/png"
+    }
+  ],
+  "short_name": "T Times",
+  "start_url": "https://ttimes.boston",
+  "theme_color": "#ffffff"
+}
