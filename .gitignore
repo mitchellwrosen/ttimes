@@ -1,5 +1,5 @@
+*.gz
 *.png
-*.svg.gz
 MBTA_GTFS.zip
 MBTA_GTFS/
 Session.vim
