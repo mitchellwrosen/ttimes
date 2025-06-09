@@ -54,6 +54,7 @@ main = do
     when downloaded do
       processConnectingStops database
       processRoutes database
+      processShapes database
       processStops database
       processStopTimes database
       processTrips database
@@ -276,6 +277,108 @@ processRoutes database = do
                 Sqlite.bindBlob statement 1 md5
                 _ <- Sqlite.stepNoCB statement
                 pure ()
+
+------------------------------------------------------------------------------------------------------------------------
+-- Shapes
+
+data ShapesRow
+  = ShapesRow
+  { shapeId :: !Text,
+    shapePtLat :: !Double,
+    shapePtLon :: !Double,
+    shapePtSequence :: !Int,
+    shapeDistTraveled :: !(Maybe Double)
+  }
+
+instance Cassava.FromNamedRecord ShapesRow where
+  parseNamedRecord :: Cassava.NamedRecord -> Cassava.Parser ShapesRow
+  parseNamedRecord record =
+    ShapesRow
+      <$> Cassava.lookup record "shape_id"
+      <*> Cassava.lookup record "shape_pt_lat"
+      <*> Cassava.lookup record "shape_pt_lon"
+      <*> Cassava.lookup record "shape_pt_sequence"
+      <*> Cassava.lookup record "shape_dist_traveled"
+
+processShapes :: Sqlite.Database -> IO ()
+processShapes database = do
+  bytes <- LazyByteString.readFile "MBTA_GTFS/shapes.txt"
+  let md5 = Md5.hashlazy bytes
+  storedMd5 <-
+    Sqlite.withStatement database "SELECT md5 FROM shapes_md5" \statement -> do
+      Sqlite.stepNoCB statement >>= \case
+        Sqlite.Row -> Just <$> Sqlite.columnBlob statement 0
+        Sqlite.Done -> pure Nothing
+
+  when (Just md5 /= storedMd5) do
+    time "Inserted MBTA_GTFS/shapes.txt into mbta_gtfs.sqlite" do
+      case Cassava.decodeByName @ShapesRow bytes of
+        Left err -> error ("bad header: " ++ err)
+        Right (_header, records) -> do
+          Sqlite.withStatement database "DELETE FROM shapes" \statement -> do
+            _ <- Sqlite.stepNoCB statement
+            pure ()
+          Sqlite.withStatement database "INSERT INTO shapes VALUES (?, ?, ?, ?, ?)" \statement ->
+            forRecords records \shape -> do
+              Sqlite.bindText statement 1 shape.shapeId
+              Sqlite.bindDouble statement 2 shape.shapePtLat
+              Sqlite.bindDouble statement 3 shape.shapePtLon
+              Sqlite.bindInt statement 4 shape.shapePtSequence
+              bindMaybeDouble statement 5 shape.shapeDistTraveled
+              _ <- Sqlite.stepNoCB statement
+              Sqlite.reset statement
+              Sqlite.clearBindings statement
+          case storedMd5 of
+            Just _ ->
+              Sqlite.withStatement database "UPDATE shapes_md5 SET md5 = ?" \statement -> do
+                Sqlite.bindBlob statement 1 md5
+                _ <- Sqlite.stepNoCB statement
+                pure ()
+            Nothing -> do
+              Sqlite.withStatement database "INSERT INTO shapes_md5 VALUES (?)" \statement -> do
+                Sqlite.bindBlob statement 1 md5
+                _ <- Sqlite.stepNoCB statement
+                pure ()
+
+    let shapesFilename = "data/shapes.json"
+
+    time ("Wrote " <> shapesFilename) do
+      let query =
+            [NeatInterpolation.text|
+              SELECT shape_id, shape_pt_lat, shape_pt_lon
+              FROM shapes
+              ORDER BY shape_id, shape_pt_sequence
+            |]
+      Sqlite.withStatement database query \statement -> do
+        let loop acc =
+              Sqlite.stepNoCB statement >>= \case
+                Sqlite.Row -> do
+                  shapeId <- Sqlite.columnText statement 0
+                  shapePtLat <- Sqlite.columnDouble statement 1
+                  shapePtLon <- Sqlite.columnDouble statement 2
+                  loop ((shapeId, shapePtLat, shapePtLon) : acc)
+                Sqlite.Done ->
+                  pure do
+                    List.foldl'
+                      ( \shapes (shapeId, shapePtLat, shapePtLon) ->
+                          Map.alter (Just . ((shapePtLat, shapePtLon) :) . fromMaybe []) shapeId shapes
+                      )
+                      Map.empty
+                      acc
+        shapes <- loop []
+        shapes
+          & Cretheus.Encode.map
+            Aeson.Key.fromText
+            ( Cretheus.Encode.list \(shapePtLat, shapePtLon) ->
+                ( Cretheus.Encode.object
+                    [ Cretheus.Encode.property "latitude" (Cretheus.Encode.double shapePtLat),
+                      Cretheus.Encode.property "longitude" (Cretheus.Encode.double shapePtLon)
+                    ]
+                )
+            )
+          & Cretheus.Encode.asValue
+          & Aeson.Pretty.encodePretty
+          & LazyByteString.writeFile (Text.unpack shapesFilename)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Stops

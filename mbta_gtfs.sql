@@ -29,6 +29,19 @@ CREATE TABLE IF NOT EXISTS routes_md5 (
   md5 BLOB NOT NULL PRIMARY KEY
 ) WITHOUT ROWID;
 
+CREATE TABLE IF NOT EXISTS shapes (
+  shape_id TEXT NOT NULL,
+  shape_pt_lat REAL NOT NULL,
+  shape_pt_lon REAL NOT NULL,
+  shape_pt_sequence INTEGER NOT NULL,
+  shape_dist_traveled REAL,
+  PRIMARY KEY (shape_id, shape_pt_sequence)
+) WITHOUT ROWID;
+
+CREATE TABLE IF NOT EXISTS shapes_md5 (
+  md5 BLOB NOT NULL PRIMARY KEY
+) WITHOUT ROWID;
+
 CREATE TABLE IF NOT EXISTS stop_times (
   trip_id TEXT NOT NULL,
   arrival_time TEXT NOT NULL,
