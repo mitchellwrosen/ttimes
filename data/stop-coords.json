@@ -38085,6 +38085,11 @@
         "longitude": -71.075894
     },
     {
+        "id": "NEC-2276-B1",
+        "latitude": 42.348245,
+        "longitude": -71.076218
+    },
+    {
         "id": "NEC-2287",
         "latitude": 42.35141,
         "longitude": -71.055417
@@ -38158,6 +38163,11 @@
         "id": "NEC-2287-B",
         "latitude": 42.352293,
         "longitude": -71.055529
+    },
+    {
+        "id": "NEC-2287-B2",
+        "latitude": 42.350143,
+        "longitude": -71.055743
     },
     {
         "id": "NHRML-0055",
@@ -38465,14 +38475,14 @@
         "longitude": -71.141258
     },
     {
-        "id": "WML-0035-B0",
-        "latitude": 42.35658,
-        "longitude": -71.14208
+        "id": "WML-0035-B3",
+        "latitude": 42.356636,
+        "longitude": -71.14328
     },
     {
-        "id": "WML-0035-B1",
-        "latitude": 42.35648,
-        "longitude": -71.14209
+        "id": "WML-0035-B4",
+        "latitude": 42.356714,
+        "longitude": -71.14318
     },
     {
         "id": "WML-0081-02",
@@ -38495,14 +38505,14 @@
         "longitude": -71.230528
     },
     {
-        "id": "WML-0091-B0",
-        "latitude": 42.347639,
-        "longitude": -71.232205
+        "id": "WML-0091-B2",
+        "latitude": 42.349243,
+        "longitude": -71.227825
     },
     {
-        "id": "WML-0091-B1",
-        "latitude": 42.347997,
-        "longitude": -71.228833
+        "id": "WML-0091-B3",
+        "latitude": 42.34919,
+        "longitude": -71.22746
     },
     {
         "id": "WML-0102-02",
@@ -38510,14 +38520,14 @@
         "longitude": -71.250373
     },
     {
-        "id": "WML-0102-B",
-        "latitude": 42.345148,
-        "longitude": -71.252123
+        "id": "WML-0102-B1",
+        "latitude": 42.346248,
+        "longitude": -71.249353
     },
     {
-        "id": "WML-0102-B0",
-        "latitude": 42.34507,
-        "longitude": -71.25223
+        "id": "WML-0102-B2",
+        "latitude": 42.346288,
+        "longitude": -71.248493
     },
     {
         "id": "WML-0125",
@@ -47098,5 +47108,10 @@
         "id": "place-wtcst",
         "latitude": 42.34863,
         "longitude": -71.04246
+    },
+    {
+        "id": "river-B",
+        "latitude": 42.336666,
+        "longitude": -71.2533
     }
 ]
