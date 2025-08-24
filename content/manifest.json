@@ -27,13 +27,8 @@
   "scope": "https://ttimes.boston",
   "screenshots": [
     {
-      "sizes": "1170x2760",
-      "src": "/static/screenshot1.png",
-      "type": "image/png"
-    },
-    {
-      "sizes": "1170x2616",
-      "src": "/static/screenshot2.png",
+      "sizes": "1082x2402",
+      "src": "/content/vMfoZFPqsGSR2e6H_WwBaG45bu44BXpt93oKSqDUews",
       "type": "image/png"
     }
   ],
