@@ -1810,6 +1810,11 @@
         "longitude": -71.092343
     },
     {
+        "id": "1225",
+        "latitude": 42.33545,
+        "longitude": -71.08799
+    },
+    {
         "id": "1227",
         "latitude": 42.335698,
         "longitude": -71.086826
@@ -2013,6 +2018,11 @@
         "id": "1262",
         "latitude": 42.325028,
         "longitude": -71.098483
+    },
+    {
+        "id": "1263",
+        "latitude": 42.322363,
+        "longitude": -71.098628
     },
     {
         "id": "12636",
@@ -3133,11 +3143,6 @@
         "id": "1409",
         "latitude": 42.372212,
         "longitude": -71.089618
-    },
-    {
-        "id": "141",
-        "latitude": 42.395752,
-        "longitude": -71.141584
     },
     {
         "id": "1411",
@@ -9885,6 +9890,16 @@
         "longitude": -71.058189
     },
     {
+        "id": "28543",
+        "latitude": 42.340285,
+        "longitude": -71.081964
+    },
+    {
+        "id": "28544",
+        "latitude": 42.34022,
+        "longitude": -71.0824
+    },
+    {
         "id": "2855",
         "latitude": 42.373222,
         "longitude": -71.060875
@@ -12543,6 +12558,11 @@
         "id": "3458",
         "latitude": 42.261898,
         "longitude": -71.024802
+    },
+    {
+        "id": "34585",
+        "latitude": 42.345992,
+        "longitude": -71.075218
     },
     {
         "id": "346",
@@ -15460,6 +15480,16 @@
         "longitude": -71.045472
     },
     {
+        "id": "41141",
+        "latitude": 42.316885,
+        "longitude": -71.102951
+    },
+    {
+        "id": "41157",
+        "latitude": 42.322698,
+        "longitude": -71.100071
+    },
+    {
         "id": "41187",
         "latitude": 42.309302,
         "longitude": -71.1048
@@ -17013,6 +17043,11 @@
         "id": "4523",
         "latitude": 42.460699,
         "longitude": -70.967777
+    },
+    {
+        "id": "45237",
+        "latitude": 42.317062,
+        "longitude": -71.104248
     },
     {
         "id": "4524",
@@ -19763,6 +19798,16 @@
         "id": "5236",
         "latitude": 42.309638,
         "longitude": -71.104245
+    },
+    {
+        "id": "52370",
+        "latitude": 42.310576,
+        "longitude": -71.106791
+    },
+    {
+        "id": "52371",
+        "latitude": 42.310259,
+        "longitude": -71.107179
     },
     {
         "id": "524",
@@ -41795,31 +41840,6 @@
         "longitude": -71.061386
     },
     {
-        "id": "node-800-crplatform",
-        "latitude": 42.436976,
-        "longitude": -71.070749
-    },
-    {
-        "id": "node-800-lobby",
-        "latitude": 42.436976,
-        "longitude": -71.070749
-    },
-    {
-        "id": "node-800-street",
-        "latitude": 42.436976,
-        "longitude": -71.070749
-    },
-    {
-        "id": "node-801-lobby",
-        "latitude": 42.436982,
-        "longitude": -71.07095
-    },
-    {
-        "id": "node-801-platform",
-        "latitude": 42.436982,
-        "longitude": -71.07095
-    },
-    {
         "id": "node-804-lobby",
         "latitude": 42.35618,
         "longitude": -71.062236
@@ -42693,6 +42713,11 @@
         "id": "node-alfcl-buswaynorthstairs-top",
         "latitude": 42.395971,
         "longitude": -71.141679
+    },
+    {
+        "id": "node-alfcl-buswayplatform-middle",
+        "latitude": 42.395752,
+        "longitude": -71.141584
     },
     {
         "id": "node-alfcl-buswayramp-bottom",
