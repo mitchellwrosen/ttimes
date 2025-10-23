@@ -1780,11 +1780,6 @@
         "longitude": -71.056267
     },
     {
-        "id": "122015",
-        "latitude": 42.209442,
-        "longitude": -71.096738
-    },
-    {
         "id": "1221",
         "latitude": 42.328012,
         "longitude": -71.096921
@@ -12561,8 +12556,8 @@
     },
     {
         "id": "34585",
-        "latitude": 42.345992,
-        "longitude": -71.075218
+        "latitude": 42.347747,
+        "longitude": -71.073842
     },
     {
         "id": "346",
@@ -27450,11 +27445,6 @@
         "longitude": -71.09742
     },
     {
-        "id": "71624",
-        "latitude": 42.26225,
-        "longitude": -71.09574
-    },
-    {
         "id": "71627",
         "latitude": 42.26176,
         "longitude": -71.09619
@@ -33891,8 +33881,8 @@
     },
     {
         "id": "900",
-        "latitude": 42.363628,
-        "longitude": -71.185536
+        "latitude": 42.363394,
+        "longitude": -71.185809
     },
     {
         "id": "9000",
@@ -38826,8 +38816,8 @@
     },
     {
         "id": "WML-0442-CS",
-        "latitude": 42.261835,
-        "longitude": -71.791806
+        "latitude": 42.261056,
+        "longitude": -71.794428
     },
     {
         "id": "WR-0045-S",
@@ -39753,6 +39743,11 @@
         "id": "door-eliot-meredith",
         "latitude": 42.319024,
         "longitude": -71.216831
+    },
+    {
+        "id": "door-esomr-innerbelt",
+        "latitude": 42.379946,
+        "longitude": -71.087006
     },
     {
         "id": "door-esomr-washington",
@@ -43515,6 +43510,21 @@
         "longitude": -71.215915
     },
     {
+        "id": "node-esomr-innercross-entrance",
+        "latitude": 42.380209,
+        "longitude": -71.087312
+    },
+    {
+        "id": "node-esomr-innercross-platform",
+        "latitude": 42.380164,
+        "longitude": -71.087392
+    },
+    {
+        "id": "node-esomr-washcross-platform",
+        "latitude": 42.379441,
+        "longitude": -71.086584
+    },
+    {
         "id": "node-fenwy-stairs-platform",
         "latitude": 42.34534,
         "longitude": -71.104235
@@ -46456,8 +46466,8 @@
     },
     {
         "id": "place-WML-0442",
-        "latitude": 42.261835,
-        "longitude": -71.791806
+        "latitude": 42.261291,
+        "longitude": -71.794927
     },
     {
         "id": "place-WR-0062",

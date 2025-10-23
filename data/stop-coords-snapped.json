@@ -1780,11 +1780,6 @@
         "longitude": -71.05625705733775
     },
     {
-        "id": "122015",
-        "latitude": 42.209467120181415,
-        "longitude": -71.09668706565358
-    },
-    {
         "id": "1221",
         "latitude": 42.32807382212144,
         "longitude": -71.09685658350816
@@ -12561,8 +12556,8 @@
     },
     {
         "id": "34585",
-        "latitude": 42.346025447215936,
-        "longitude": -71.07515829812272
+        "latitude": 42.347789115646265,
+        "longitude": -71.07380215528613
     },
     {
         "id": "346",
@@ -27450,11 +27445,6 @@
         "longitude": -71.09736513707188
     },
     {
-        "id": "71624",
-        "latitude": 42.262251196775026,
-        "longitude": -71.09566995852614
-    },
-    {
         "id": "71627",
         "latitude": 42.26181027966743,
         "longitude": -71.09617851208986
@@ -33891,8 +33881,8 @@
     },
     {
         "id": "900",
-        "latitude": 42.36366213151928,
-        "longitude": -71.18551442145022
+        "latitude": 42.36341017888637,
+        "longitude": -71.18576869823208
     },
     {
         "id": "9000",
@@ -38826,8 +38816,8 @@
     },
     {
         "id": "WML-0442-CS",
-        "latitude": 42.26187326782565,
-        "longitude": -71.79179502833321
+        "latitude": 42.26111740992695,
+        "longitude": -71.79442255507911
     },
     {
         "id": "WR-0045-S",
@@ -39753,6 +39743,11 @@
         "id": "door-eliot-meredith",
         "latitude": 42.31906651549511,
         "longitude": -71.21679046561908
+    },
+    {
+        "id": "door-esomr-innerbelt",
+        "latitude": 42.379976064499886,
+        "longitude": -71.08693978901559
     },
     {
         "id": "door-esomr-washington",
@@ -43515,6 +43510,21 @@
         "longitude": -71.21585811741892
     },
     {
+        "id": "node-esomr-innercross-entrance",
+        "latitude": 42.380228017132794,
+        "longitude": -71.08727882472473
+    },
+    {
+        "id": "node-esomr-innercross-platform",
+        "latitude": 42.380165028974574,
+        "longitude": -71.08736358365202
+    },
+    {
+        "id": "node-esomr-washcross-platform",
+        "latitude": 42.37947215923407,
+        "longitude": -71.08651599437916
+    },
+    {
         "id": "node-fenwy-stairs-platform",
         "latitude": 42.34539556563368,
         "longitude": -71.10423061018211
@@ -46456,8 +46466,8 @@
     },
     {
         "id": "place-WML-0442",
-        "latitude": 42.26187326782565,
-        "longitude": -71.79179502833321
+        "latitude": 42.26130637440161,
+        "longitude": -71.79484634971554
     },
     {
         "id": "place-WR-0062",
