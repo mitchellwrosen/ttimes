@@ -50,6 +50,9 @@ type StopId = Text
 main :: IO ()
 main = do
   Sqlite.withDatabase "mbta_gtfs.sqlite" \database -> do
+    Sqlite.withStatement database "BEGIN" \statement -> do
+      _ <- Sqlite.stepNoCB statement
+      pure ()
     downloaded <- downloadMbtaGtfsZip database
     when downloaded do
       processConnectingStops database
@@ -59,6 +62,9 @@ main = do
       processStopTimes database
       processTrips database
       processStopConnectingRoutes database
+    Sqlite.withStatement database "COMMIT" \statement -> do
+      _ <- Sqlite.stepNoCB statement
+      pure ()
 
 -----------------------------------------------------------------------------------------------------------------------
 -- MBTA_GTFS.zip

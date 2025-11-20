@@ -38215,11 +38215,6 @@
         "longitude": -71.075894
     },
     {
-        "id": "NEC-2276-B1",
-        "latitude": 42.348245,
-        "longitude": -71.076218
-    },
-    {
         "id": "NEC-2287",
         "latitude": 42.35141,
         "longitude": -71.055417
@@ -38293,11 +38288,6 @@
         "id": "NEC-2287-B",
         "latitude": 42.352293,
         "longitude": -71.055529
-    },
-    {
-        "id": "NEC-2287-B2",
-        "latitude": 42.350143,
-        "longitude": -71.055743
     },
     {
         "id": "NHRML-0055",
@@ -38605,29 +38595,9 @@
         "longitude": -71.141258
     },
     {
-        "id": "WML-0035-B3",
-        "latitude": 42.356636,
-        "longitude": -71.14328
-    },
-    {
-        "id": "WML-0035-B4",
-        "latitude": 42.356714,
-        "longitude": -71.14318
-    },
-    {
         "id": "WML-0081-02",
         "latitude": 42.351702,
         "longitude": -71.205408
-    },
-    {
-        "id": "WML-0081-B2",
-        "latitude": 42.35163,
-        "longitude": -71.20765
-    },
-    {
-        "id": "WML-0081-B3",
-        "latitude": 42.35161,
-        "longitude": -71.2071
     },
     {
         "id": "WML-0091-02",
@@ -38635,29 +38605,9 @@
         "longitude": -71.230528
     },
     {
-        "id": "WML-0091-B2",
-        "latitude": 42.349243,
-        "longitude": -71.227825
-    },
-    {
-        "id": "WML-0091-B3",
-        "latitude": 42.34919,
-        "longitude": -71.22746
-    },
-    {
         "id": "WML-0102-02",
         "latitude": 42.345833,
         "longitude": -71.250373
-    },
-    {
-        "id": "WML-0102-B1",
-        "latitude": 42.346248,
-        "longitude": -71.249353
-    },
-    {
-        "id": "WML-0102-B2",
-        "latitude": 42.346288,
-        "longitude": -71.248493
     },
     {
         "id": "WML-0125",
@@ -38690,16 +38640,6 @@
         "longitude": -71.277044
     },
     {
-        "id": "WML-0135-B0",
-        "latitude": 42.31014,
-        "longitude": -71.27672
-    },
-    {
-        "id": "WML-0135-B1",
-        "latitude": 42.31009,
-        "longitude": -71.27658
-    },
-    {
         "id": "WML-0147",
         "latitude": 42.297526,
         "longitude": -71.294173
@@ -38713,16 +38653,6 @@
         "id": "WML-0147-02",
         "latitude": 42.296559,
         "longitude": -71.296746
-    },
-    {
-        "id": "WML-0147-B0",
-        "latitude": 42.29657,
-        "longitude": -71.29367
-    },
-    {
-        "id": "WML-0147-B1",
-        "latitude": 42.29644,
-        "longitude": -71.29367
     },
     {
         "id": "WML-0177",
@@ -38740,16 +38670,6 @@
         "longitude": -71.347133
     },
     {
-        "id": "WML-0177-B0",
-        "latitude": 42.28535,
-        "longitude": -71.3469
-    },
-    {
-        "id": "WML-0177-B1",
-        "latitude": 42.28529,
-        "longitude": -71.34666
-    },
-    {
         "id": "WML-0199",
         "latitude": 42.283064,
         "longitude": -71.391797
@@ -38763,16 +38683,6 @@
         "id": "WML-0199-02",
         "latitude": 42.283064,
         "longitude": -71.391797
-    },
-    {
-        "id": "WML-0199-B0",
-        "latitude": 42.28192,
-        "longitude": -71.39095
-    },
-    {
-        "id": "WML-0199-B1",
-        "latitude": 42.28181,
-        "longitude": -71.3912
     },
     {
         "id": "WML-0214",
